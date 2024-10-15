@@ -6,13 +6,6 @@
 #include <stdlib.h>
 #include "utilities.c"
 
-// Structs
-typedef struct
-{
-    float x;
-    float y;
-} Axis;
-
 // Plot Types
 void plot_table(double x[], double y[], int size_arr, int SCREEN_H, int SCREEN_W)
 {
@@ -23,45 +16,27 @@ void plot_table(double x[], double y[], int size_arr, int SCREEN_H, int SCREEN_W
     }
 }
 
-void plot_scatter(double x[], double y[], int size_arr, int SCREEN_H, int SCREEN_W)
+void plot_scatter(double x[], double y[], const int size_arr, const int SCREEN_H, const int SCREEN_W)
 {
     double x_sort[size_arr], y_sort[size_arr];
     copy_array(x, x_sort, size_arr);
     copy_array(y, y_sort, size_arr);
 
     // # Sort array
-
-    // printf("\nSorting ...\n");
-
-    // printf("x sorted :\n");
-    // print_double_array(x_sort, size_arr);
     bubble_sort(x_sort, size_arr);
-
-    // int x_size_arr = removeDuplicates(x_sort, size_arr);
-    // print_double_array(x_sort, x_size_arr);
-
-    // printf("y sorted :\n");
-    // print_double_array(y_sort, size_arr);
     bubble_sort(y_sort, size_arr);
-
-    // int y_size_arr = removeDuplicates(y_sort, size_arr);
-    // print_double_array(y_sort, y_size_arr);
 
     printf("\nInitialize Scatter Plot\n");
 
-    Axis max;
-    max.x = x_sort[size_arr - 1];
-    max.y = y_sort[size_arr - 1];
-
-    Axis graph_size;
-    graph_size.x = 10;
-    graph_size.y = 10;
-
     printf("%d Plots Total\n", size_arr);
 
-    double graph_size_H = SCREEN_H - SCREEN_H % (int)graph_size.y;
-    double graph_size_W = SCREEN_W - SCREEN_W % (int)graph_size.x;
-    printf("Size :%lf %lf\n\n", graph_size_H, graph_size_W);
+    const int GRAPH_SIZE_X = size_arr;
+    const int GRAPH_SIZE_Y = size_arr;
+
+    double graph_size_H = SCREEN_H - SCREEN_H % GRAPH_SIZE_X;
+    double graph_size_W = SCREEN_W - SCREEN_W % GRAPH_SIZE_Y;
+
+    printf("Chart Size :%lf %lf\n\n", graph_size_H, graph_size_W);
 
     double _y_sort[size_arr];
     copy_array(y_sort, _y_sort, size_arr);
@@ -73,10 +48,10 @@ void plot_scatter(double x[], double y[], int size_arr, int SCREEN_H, int SCREEN
     printf("%d, %d", size__x, size__y);
 
     // Normalize plotting value
-    double x_normalize[size_arr];
-    double y_normalize[size_arr];
-    double _y_normalize[size__y];
-    double _x_normalize[size__x];
+    double x_normalize[size_arr]; // Normalized X with X axis
+    double y_normalize[size_arr]; // Normalized Y with Y axis
+    double _y_normalize[size__y]; // Normalized and removed duplicates of Y for Y axis
+    double _x_normalize[size__x]; // Normalized and removed duplicates of X for X axis
 
     for (int i = 0; i < size_arr; i++)
     {
@@ -97,11 +72,11 @@ void plot_scatter(double x[], double y[], int size_arr, int SCREEN_H, int SCREEN
     {
         _y_normalize[i] = normalize(graph_size_H, _y_sort[i], _y_sort[0], _y_sort[size__y - 1]); // From back to front
     }
-
-    print_double_array(_x_sort, size__x);
-    print_double_array(_y_sort, size__y);
-    print_double_array(_x_normalize, size__x);
-    print_double_array(_y_normalize, size__y);
+    // for array debug
+    // print_double_array(_x_sort, size__x);
+    // print_double_array(_y_sort, size__y);
+    // print_double_array(_x_normalize, size__x);
+    // print_double_array(_y_normalize, size__y);
 
     // Debug Normalized Value
     printf("Normalized Values:\n");
@@ -115,12 +90,11 @@ void plot_scatter(double x[], double y[], int size_arr, int SCREEN_H, int SCREEN
         }
         printf("| y: %.2lf ->%.2lf\n", y[size_arr - i - 1], y_normalize[size_arr - i - 1]);
     }
-    char scatter_flag = 'X';
-    // --------------------------------------------------------------------------------
-    // Plot Graph size
-    // --------------------------------------------------------------------------------
-    // Draw Y Axis
+    printf("\n");
 
+    const char SCATTER_FLAG = 'X'; 
+    
+    // Draw Y Axis
     int indent_y = nDigits(y_sort[size_arr - 1]);
     int partition = 0;
     for (int i = 0; i < graph_size_H + 1; i++)
@@ -136,32 +110,26 @@ void plot_scatter(double x[], double y[], int size_arr, int SCREEN_H, int SCREEN
 
             printf("%.2lf", _y_sort[size__y - partition - 1]);
             curr_number = (double)_y_sort[size__y - partition - 1];
-            //  ---
-            // Get all x values that is same y
 
+            // Get all x values that is same y
             for (int match_n = 0; match_n < size_arr; match_n++)
             {
                 
                 if (y[size_arr - match_n - 1] == curr_number)
                 {
-                    // printf("y: %d curr_num: %d |", (int) y[size_arr - match_n - 1], curr_number);
                     // Get x value
-                    match_pair_x[match_idx][0] = x[match_n];
+                    match_pair_x[match_idx][0] = x[size_arr - match_n - 1];
+
                     // Get y value
                     match_pair_x[match_idx][1] = y[size_arr - match_n - 1];
+
                     // Get x distance
-                    match_pair_x[match_idx][2] = (double)round(x_normalize[match_n]);
+                    match_pair_x[match_idx][2] = (double)round(x_normalize[size_arr - match_n - 1]);
                     match_pair_x[match_idx][3] = (double)round(y_normalize[size_arr - match_n - 1]);
-
-                    // printf(" %d: [x: %d y: %d xn: %d yn: %d]", match_idx, match_pair_x[match_idx][0], match_pair_x[match_idx][1], match_pair_x[match_idx][2], match_pair_x[match_idx][3]);
-
                     match_idx += 1;
-                    // printf(" %d", match_idx);
                 }
             }
-            // ---
 
-            // size_x = (int) round(x_normalize[partition]);
             partition++;
         }
 
@@ -199,7 +167,7 @@ void plot_scatter(double x[], double y[], int size_arr, int SCREEN_H, int SCREEN
                     {
                         for (int m = 0; m < 4; m++)
                         {
-                            int temp = match_pair_x[l][m];
+                            double temp = match_pair_x[l][m];
                             match_pair_x[l][m] = match_pair_x[l + 1][m];
                             match_pair_x[l + 1][m] = temp;
                         }
@@ -207,18 +175,10 @@ void plot_scatter(double x[], double y[], int size_arr, int SCREEN_H, int SCREEN
                 }
             }
 
-            // int _match_idx;
-            // for(int _i = 0; _i < 3; _i++){
-            //     _match_idx = removeDuplicates(match_pair_x[i], match_idx);
-            // }
-            // match_idx = _match_idx;
-            
-            // printf("match size : %d", match_idx);
             int last_pos = 0;
             int extra_length = 0;
             for (int num_pair = 0; num_pair < match_idx; num_pair++)
             {
-                // printf("%d,%d", num_pair, match_idx);
                 int pos = match_pair_x[num_pair][2] * 3;
                 // printf("x: %d y: %d",match_pair_x[num_pair][2], match_pair_x[num_pair][3]);
                 for (int j = last_pos; j < pos - extra_length; j++)
@@ -229,7 +189,7 @@ void plot_scatter(double x[], double y[], int size_arr, int SCREEN_H, int SCREEN
                 {
                     // Plot scatter with color
                     printf("\033[1;31m");
-                    printf("%c", scatter_flag);
+                    printf("%c", SCATTER_FLAG);
                     printf("\033[1;32m");
                     printf(" (%.0lf, %.0lf)", match_pair_x[num_pair][0], match_pair_x[num_pair][1]);
                     printf("\033[0m");
@@ -243,8 +203,8 @@ void plot_scatter(double x[], double y[], int size_arr, int SCREEN_H, int SCREEN
         printf("\n");
     }
 
-    // --------------------------------------------------------------------------------
     // Draw X Axis
+
     // indent space for x
     indent_y += 3;
     for (int i = 0; i < indent_y; i++)

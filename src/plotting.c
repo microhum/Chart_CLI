@@ -9,8 +9,12 @@
 #include "plot.c"
 
 // Define
-#define SCREEN_H 36
-#define SCREEN_W 52
+#define SCREEN_H 24
+#define SCREEN_W 42
+
+void clear_screen() {
+    printf("\033[H\033[J");
+}
 
 int main()
 {
@@ -27,13 +31,28 @@ int main()
     char buffer[100], lower_buffer[100];
     double x_values[100];
     double y_values[100];
+
+    if (plot_type == 1)
+    {
+        // Force Insert Point (0,0)
+        x_values[i] = 0;
+        y_values[i] = 0;
+        i++;
+    }
+
     printf("Getting Input (Press ENTER if done)\n");
     while (on_plotting)
-    {
-        printf("Plot %d [x] [y] ", i);
+    {   
+        if(plot_type && i > 1){
+            plot_scatter(x_values, y_values, i, SCREEN_H, SCREEN_W);
+        }
+        
+        printf("\nPlot %d [x] [y] ", i);
         if (fgets(buffer, sizeof(buffer), stdin) != NULL)
-            strcpy(lower_buffer, buffer);
+
+        strcpy(lower_buffer, buffer);
         strlwr(lower_buffer);
+
         if (strcmp(lower_buffer, "done\n") == 0 || strcmp(lower_buffer, "exit\n") == 0 || strcmp(lower_buffer, "esc\n") == 0 || strcmp(lower_buffer, "\n") == 0)
         {
             on_plotting = 0;
@@ -41,6 +60,7 @@ int main()
         else if (sscanf(buffer, "%lf %lf", &x_values[i], &y_values[i]) == 2)
         {
             // printf("%.2lf %.2lf\n", x_values[i], y_values[i]);
+            system("cls");
             i++;
         }
         else
@@ -48,11 +68,6 @@ int main()
             printf("Invalid input. Please enter two valid numbers.\n");
         }
     }
-
-    // Force Insert Point (0,0)
-    x_values[i] = 0;
-    y_values[i] = 0;
-    i++;
 
     switch (plot_type)
     {
