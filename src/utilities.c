@@ -29,7 +29,7 @@ int find_max(double arr[], int size)
     return max;
 }
 
-int max(int a, int b)
+int max_value(int a, int b)
 {
     return (a > b) ? a : b;
 }
@@ -62,13 +62,6 @@ void bubble_sort(double arr[], int n)
     }
 }
 
-void copy_array(double *original, double *copy, int n)
-{
-    for (int i = 0; i < n; i++)
-    {
-        copy[i] = original[i];
-    }
-}
 int removeDuplicates(double arr[], int N)
 {
     if (N == 0)
@@ -96,6 +89,7 @@ void print_double_array(double *array, int length)
     printf("\n");
 }
 
+// ### min/max scaling
 // new_size = graph_size_H * (( y[partition] - y[0] ) / ( y[size_arr -1] - y[0]));
 double normalize(double max_new_size, double old_size, double min_old_size, double max_old_size)
 {
