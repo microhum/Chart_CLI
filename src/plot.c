@@ -6,19 +6,92 @@
 #include <stdlib.h>
 #include <wchar.h> //wprintf for printing unicode
 #include "utilities.c"
+#include "constant.h"
 
-const char SCATTER_FLAG = 'X'; 
-const char* Y_AXIS_FLAG = "┼";
-const char* X_AXIS_FLAG = "-";
+const char SCATTER_FLAG = 'X';
+const char *Y_AXIS_FLAG = "┼";
+const char *X_AXIS_FLAG = "-";
 
-// Plot Types
-void plot_table(double x[], double y[], int size_arr, int SCREEN_H, int SCREEN_W)
+void plot_table(const DataSet *dataSet)
 {
-    printf("%d Plots Total\n", size_arr);
-    for (int i = 0; i < size_arr; i++)
+    // Print header
+    printf("%d Plots Total\n", dataSet->show_amount);
+
+    // Top Line
+    printf("%s", CORNER_TL);
+    for (int i = 0; i < dataSet->chosen_X_param_amount + 1; i++)
     {
-        printf("Plot %d: x = %.2f, y = %.2f\n", i, x[i], y[i]);
+        for (int j = 0; j < TABLE_WIDTH; j++)
+        {
+            printf("%s", CORNER_HZ);
+        }
+        if (i != dataSet->chosen_X_param_amount)
+            printf("%s", CORNER_BHZ);
     }
+    printf("%s", CORNER_TR);
+    printf("\n");
+
+    // Print Lable name
+    printf("%s", CORNER_VC);
+    printf("%*s", TABLE_WIDTH - BACK_SPACE, dataSet->label[dataSet->chosen_Y_param]);
+    for (int k = 0; k < BACK_SPACE; k++)
+        printf(" ");
+    for (int i = 0; i < dataSet->chosen_X_param_amount; i++)
+    {
+        printf("%s", CORNER_VC);
+        printf("%*s", TABLE_WIDTH - BACK_SPACE, dataSet->label[dataSet->chosen_X_param[i]]);
+        for (int k = 0; k < BACK_SPACE; k++)
+            printf(" ");
+    }
+    printf("%s", CORNER_VC);
+    printf("\n");
+
+    // Print the data
+    for (int i = 0; i < dataSet->show_amount; i++)
+    {
+        // Pararel Line
+        printf("%s", CORNER_LVC);
+        for (int i = 0; i < dataSet->chosen_X_param_amount + 1; i++)
+        {
+            for (int j = 0; j < TABLE_WIDTH; j++)
+            {
+                printf("%s", CORNER_HZ);
+            }
+            if (i != dataSet->chosen_X_param_amount)
+                printf("%s", CORNER_ALL);
+        }
+        printf("%s", CORNER_RVC);
+        printf("\n");
+
+        // Data
+        printf("%s", CORNER_VC);
+        printf("%*.2f", TABLE_WIDTH - BACK_SPACE, dataSet->db[dataSet->chosen_Y_param][i]); // Print Y values
+        for (int k = 0; k < BACK_SPACE; k++)
+            printf(" ");
+        for (int j = 0; j < dataSet->chosen_X_param_amount; j++)
+        {
+            printf("%s", CORNER_VC);
+            printf("%*.2f", TABLE_WIDTH - BACK_SPACE, dataSet->db[dataSet->chosen_X_param[j]][i]); // Print X values
+            for (int k = 0; k < BACK_SPACE; k++)
+                printf(" ");
+        }
+        printf("%s", CORNER_VC);
+        printf("\n");
+    }
+
+    // Buttom Line
+    printf("%s", CORNER_BL);
+    for (int i = 0; i < dataSet->chosen_X_param_amount + 1; i++)
+    {
+        for (int j = 0; j < TABLE_WIDTH; j++)
+        {
+            printf("%s", CORNER_HZ);
+        }
+        if (i != dataSet->chosen_X_param_amount)
+            printf("%s", CORNER_THZ);
+    }
+    printf("%s", CORNER_BR);
+    printf("\n");
 }
 
 void plot_scatter(double x[], double y[], const int size_arr, const int SCREEN_H, const int SCREEN_W)
@@ -70,7 +143,7 @@ void plot_scatter(double x[], double y[], const int size_arr, const int SCREEN_H
     // print_double_array(_y_sort, size__y);
     // print_double_array(_x_normalize, size__x);
     // print_double_array(_y_normalize, size__y);
-    
+
     // ### Debug Normalized Value
     // printf("Normalized Values:\n");
     // for (int i = 0; i < size_arr; i++)
@@ -100,7 +173,7 @@ void plot_scatter(double x[], double y[], const int size_arr, const int SCREEN_H
             // Get all x values that is same y
             for (int match_n = 0; match_n < size_arr; match_n++)
             {
-                
+
                 if (y[size_arr - match_n - 1] == curr_number)
                 {
                     // Get x value
@@ -199,10 +272,10 @@ void plot_scatter(double x[], double y[], const int size_arr, const int SCREEN_H
     printf("+");
     for (int i = 0; i < graph_size_W + 1; i++)
     {
-        for(int j = 0; j < 3; j++){
+        for (int j = 0; j < 3; j++)
+        {
             printf("%s", X_AXIS_FLAG);
         }
-        
     }
     printf("\n");
 
