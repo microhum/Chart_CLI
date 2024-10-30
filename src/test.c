@@ -12,16 +12,20 @@ int main()
     DataSet dataSet = {
         .label = {"Score", "Sec A", "Sec B", "Sec C"},
         .db = {
-            {2, 3, 4, 5, 6},
-            {1, 2, 3, 4, 5},
-            {11, 22, 33, 44, 55},
+            {5, 2, 3, 1, 4},
+            {3, 2, 1, 4, 6},
+            {3, 22, 33, 44, 55},
             {111, 222, 333, 444, 555}},
+        .db_sort = {},
+        .db_cols_size = 4,
+        .db_rows_size = 5,
         .chosen_Y_param = 0,
         .chosen_X_param = {1, 2, 3},
-        .chosen_X_param_amount = 3,
-        .show_amount = 5};
+        .chosen_X_param_size = 3,
+        .show_size = 5};
 
-    plot_table(&dataSet);
+    sort_db_by_Y_param(&dataSet);
+    print_db(&dataSet, dataSet.db_sort);
 
     return 0;
 }
