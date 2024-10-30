@@ -11,7 +11,7 @@
 #define UNDERLINE "\033[4m"
 
 // Define
-#define SCREEN_H 24
+#define SCREEN_H 42
 #define SCREEN_W 42
 
 // in format command: {syntax, help_detail}
@@ -45,7 +45,7 @@ int main()
     printf("Type of your plot:\n");
     printf("Table (0), Scatter (1), Line (2) (default 0) :");
     scanf("%d", &plot_type);
-    printf("write (0) read (1)", "\033[4m", "\033[0m");
+    printf("%swrite (0)%s read (1)", "\033[4m", "\033[0m");
     scanf("%d", &data_mode);
     if (data_mode == 1)
     {
