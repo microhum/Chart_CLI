@@ -31,6 +31,19 @@ void clear_screen()
     printf("\033[H\033[J");
 }
 
+void print_ascii_art(){
+    printf(" ________  ___  ___  ___  ________  ___  __    ________  ___       ________  _________               ________  ___       ___     \n");
+    printf("|\\   __  \\|\\  \\|\\  \\|\\  \\|\\   ____\\|\\  \\|\\  \\ |\\   __  \\|\\  \\     |\\   __  \\|\\___   ___\\            |\\   ____\\|\\  \\     |\\  \\    \n");
+    printf("\\ \\  \\|\\  \\ \\  \\\\\\  \\ \\  \\ \\  \\___|\\ \\  \\/  /|\\ \\  \\|\\  \\ \\  \\    \\ \\  \\|\\  \\|___ \\  \\_|____________\\ \\  \\___|\\ \\  \\    \\ \\  \\   \n");
+    printf(" \\ \\  \\\\\\  \\ \\  \\\\\\  \\ \\  \\ \\  \\    \\ \\   ___  \\ \\   ____\\ \\  \\    \\ \\  \\\\\\  \\   \\ \\  \\|\\____________\\ \\  \\    \\ \\  \\    \\ \\  \\  \n");
+    printf("  \\ \\  \\\\\\  \\ \\  \\\\\\  \\ \\  \\ \\  \\____\\ \\  \\\\ \\  \\ \\  \\___|\\ \\  \\____\\ \\  \\\\\\  \\   \\ \\  \\|____________|\\ \\  \\____\\ \\  \\____\\ \\  \\ \n");
+    printf("   \\ \\_____  \\ \\_______\\ \\__\\ \\_______\\ \\__\\\\ \\__\\ \\__\\    \\ \\_______\\ \\_______\\   \\ \\__\\              \\ \\_______\\ \\_______\\ \\__\\\n");
+    printf("    \\|___| \\__\\|_______|\\|__|\\|_______|\\|__| \\|__|\\|__|     \\|_______|\\|_______|    \\|__|               \\|_______|\\|_______|\\|__|\n");
+    printf("          \\|__|                                                                                                                   \n");
+    printf("                                                                                                                                  \n");
+    printf("                                                                                                                                  \n");
+}
+
 int main()
 {
     setup();
@@ -43,6 +56,7 @@ int main()
 
     while (1)
     {
+        print_ascii_art();
         // Initialize Plotting, Get plot_type and data_mode
         printf("Type of your plot:\n");
         printf("Table (0), Scatter (1), Line (2), Exit(-1) : ");
@@ -60,7 +74,7 @@ int main()
             printf("Choose your data path (ex: your_path/file.csv): ");
             scanf("%s", data_path);
         }
-
+        
         // Start Plotting function
         char buffer[100], lower_buffer[100];
         double x_values[200];
@@ -106,10 +120,10 @@ int main()
                 switch (plot_type)
                 {
                 case 0:
-                    plot_table(x_values, y_values, plot_count, SCREEN_H, SCREEN_W);
+                    // plot_table(x_values, y_values, plot_count, SCREEN_H, SCREEN_W);
                     break;
                 case 1:
-                    plot_scatter(x_values, y_values, plot_count, SCREEN_H, SCREEN_W);
+                    // plot_scatter_old(x_values, y_values, plot_count, SCREEN_H, SCREEN_W);
                     break;
                 case 2:
                     // plot_scatter(axis, i);
