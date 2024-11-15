@@ -1,3 +1,6 @@
+#include "../libs/CTerminalPlotLib/include/CTerminalPlotLib.h"
+#include "../libs/CTerminalPlotLib/src/CTerminalPlotLib.c"
+
 #include <stdio.h>
 #include <math.h>
 #include <conio.h>
