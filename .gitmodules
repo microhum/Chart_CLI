@@ -1,0 +1,6 @@
+[submodule "path/to/submodule-folder"]
+	path = path/to/submodule-folder
+	url = https://github.com/Jakkarin-Promsee/CTerminalPlotLib.git
+[submodule "CTerminalPlotLib"]
+	path = CTerminalPlotLib
+	url = https://github.com/Jakkarin-Promsee/CTerminalPlotLib.git
