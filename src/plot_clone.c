@@ -30,6 +30,18 @@ void print_ascii_art()
     printf("                                                                                                                                  \n");
 }
 
+bool CheckQuitCondition(char input[])
+{
+    if (!strcmp(input, "done\n") ||
+        !strcmp(input, "exit\n") ||
+        !strcmp(input, "esc\n") ||
+        !strcmp(input, "q\n") ||
+        !strcmp(input, "\n"))
+        return true;
+    else
+        return false;
+}
+
 int main()
 {
     setup();
@@ -170,6 +182,10 @@ int main()
         // ----------------------------- Input State -----------------------------
         // Start Plotting
         printf("\nGetting Plotting:\n");
+
+        int plot_option = -1;
+        // -1 menu, 0 writing, 1 searching, 2 more
+
         while (1)
         {
             // Display the plot
@@ -178,42 +194,124 @@ int main()
                 switch (plot_type)
                 {
                 case 0:
-                    ctp_plot_table(dataSet);
+                    if (plot_option == 0)
+                        ctp_plot_table(dataSet);
+                    else if (plot_option == 1)
+                        ctp_plot_table_search(dataSet);
                     break;
                 case 1:
-                    ctp_plot(dataSet);
+                    if (plot_option == 0)
+                        ctp_plot(dataSet);
+                    else if (plot_option == 1)
+                        ctp_plot_search(dataSet);
                     break;
                 default:
                     break;
                 }
             }
 
-            // Get new plotting point
-            printf("\nPlot %d, Exit(exit):\n", dataSet->db_rows_size);
-
-            // Recieve New data
-            CTP_PARAM data[dataSet->db_rows_size];
-            for (int i = 0; i < dataSet->db_cols_size; i++)
+            if (plot_option == -1) // Menu
             {
-                printf("Column[%d] (%s): ", i, dataSet->label[i]);
-                fgets(input, sizeof(input), stdin);
+                printf("\nPlot Menu:\n");
+                printf(" -1: Exit. \n");
+                printf("  0: Writing new data. \n");
+                printf("  1: Search data. \n");
 
-                if (!strcmp(input, "done\n") ||
-                    !strcmp(input, "exit\n") ||
-                    !strcmp(input, "esc\n") ||
-                    !strcmp(input, "\n"))
-                {
-                    force_break = true;
-                    break;
-                }
-                else
-                    sscanf(input, "%lf", &data[i]);
+                printf("Menu: ");
+                fgets(input, sizeof(input), stdin);
+                sscanf(input, "%d", &plot_option);
             }
 
-            if (force_break)
-                break;
+            if (plot_option == 0) // Writing
+            {
+                // Get new plotting point
+                printf("\nWrinting Mode:\n");
+                printf("Plot %d, Done(q):\n", dataSet->db_rows_size);
 
-            ctp_add_row(dataSet, data);
+                // Recieve New data
+                CTP_PARAM data[dataSet->db_rows_size];
+                for (int i = 0; i < dataSet->db_cols_size; i++)
+                {
+                    printf("Column[%d] (%s): ", i, dataSet->label[i]);
+                    fgets(input, sizeof(input), stdin);
+
+                    if (CheckQuitCondition(input))
+                    {
+                        plot_option = -1;
+                        break;
+                    }
+                    else
+                        sscanf(input, "%lf", &data[i]);
+                }
+
+                if (force_break)
+                    break;
+
+                ctp_add_row(dataSet, data);
+            }
+            else if (plot_option == 1) // Search
+            {
+                int col;
+                char op[20];
+                double target;
+
+                printf("\nSearching Mode:\n");
+
+                printf("Select search column:\n");
+                for (int i = 0; i < dataSet->db_cols_size; i++)
+                {
+                    printf("  %d: %s\n", i, dataSet->label[i]);
+                }
+                printf("Select , Quit(q): ");
+                fgets(input, sizeof(input), stdin);
+                if (CheckQuitCondition(input))
+                {
+                    plot_option = -1;
+                    continue;
+                    ;
+                }
+                else
+                    sscanf(input, "%d", &col);
+
+                printf("\nSelect operator:\n");
+                printf("  e: Equal (==)\n");
+                printf("  ne: Not equal (!=)\n");
+                printf("  lt: Less than (<)\n");
+                printf("  lte: Less than or Equal (<=)\n");
+                printf("  gt: Grater than (>)\n");
+                printf("  gte: Grater than or Equal (>=)\n");
+
+                printf("Select , Quit(q): ");
+                fgets(input, sizeof(input), stdin);
+
+                if (CheckQuitCondition(input))
+                {
+                    plot_option = -1;
+                    continue;
+                    ;
+                }
+                else
+                {
+                    // Remove newline if present
+                    char *newline = strchr(input, '\n');
+                    if (newline)
+                        *newline = '\0';
+                    strcpy(op, input);
+                }
+
+                printf("\nSet search value: , Quit(q): ");
+                fgets(input, sizeof(input), stdin);
+                if (CheckQuitCondition(input))
+                {
+                    plot_option = -1;
+                    continue;
+                    ;
+                }
+                else
+                    sscanf(input, "%lf", &target);
+
+                ctp_findMany(dataSet, col, op, target);
+            }
         }
         printf("End of Program, Thank you.\n");
     }
