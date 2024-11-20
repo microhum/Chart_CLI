@@ -69,31 +69,41 @@ int main()
         print_ascii_art();
 
         // Get Plotting parameters
-        printf("Type of your plot:\n");
+        printf("Select Plot Types:\n");
+        printf("  q : Exit.\n");
+        printf("  0 : Table.\n");
+        printf("  1 : Scatter.\n");
+        printf("  2 : Line.\n");
+        printf(": ");
 
-        printf("Table (0), Scatter (1), Line (2), Exit(-1) : ");
         fgets(input, sizeof(input), stdin);
         sscanf(input, "%d", &plot_type);
-        if (plot_type == -1) // Exit
+        if (CheckQuitCondition(input)) // Exit
             break;
+        printf("\n");
 
-        printf("write (0) read (1), Exit(-1) : ");
+        printf("Select Mode:\n");
+        printf("  q : Exit.\n");
+        printf("  0 : Write.\n");
+        printf("  1 : Read.\n");
+        printf(": ");
         fgets(input, sizeof(input), stdin);
         sscanf(input, "%d", &data_mode);
         if (data_mode == -1) // Exit
             break;
+        printf("\n");
 
         // Get more specific parameters
         if (data_mode == 0) // Write manually
         {
-            printf("Amount of you input column : ");
+            printf("Amount of you input column: ");
             fgets(input, sizeof(input), stdin);
             sscanf(input, "%d", &default_max_cols_size);
 
             printf("\nInput Name Of Column:\n");
             for (int i = 0; i < default_max_cols_size; i++)
             {
-                printf("Column[%d]: ", i);
+                printf("  Column[%d]: ", i);
                 fgets(input, sizeof(input), stdin);
                 input[strcspn(input, "\n")] = 0;
                 strcpy(name[i], input);
@@ -101,14 +111,14 @@ int main()
 
             // Initialize DataSet
             dataSet = ctp_initialize_dataset(default_max_cols_size, default_max_name_legth, default_max_rows_size);
-            ctp_add_label(dataSet, name, 20, default_max_cols_size);
+            ctp_add_label(dataSet, *name, 20, default_max_cols_size);
             dataSet->db_rows_size = 0;
             dataSet->db_cols_size = default_max_cols_size;
         }
         else if (data_mode == 1)
         {
             // Get csv path
-            printf("Choose your data path (ex: your_path/file.csv): ");
+            printf("Choose your data path (ex: your_path/file.csv)\n: ");
             fgets(input, sizeof(input), stdin);
             input[strcspn(input, "\n")] = 0;
             strcpy(file_path, input);
@@ -118,13 +128,12 @@ int main()
             if (fpt == NULL)
             {
                 perror("Error opening file");
-                return;
+                return 1;
             }
 
             // Initialize tempo input
             char _input[300]; // Buffer to hold the first line (adjust size as needed)
             char *_idx;
-            char _cols[10][300];
 
             // Read the first line which are the label and count data column
             if (fgets(_input, sizeof(_input), fpt) != NULL)
@@ -149,7 +158,7 @@ int main()
 
             // Initialize DataSet
             dataSet = ctp_initialize_dataset(default_max_cols_size, default_max_name_legth, default_max_rows_size);
-            ctp_add_label(dataSet, name, 20, default_max_cols_size);
+            ctp_add_label(dataSet, *name, 20, default_max_cols_size);
             dataSet->db_rows_size = 0;
             dataSet->db_cols_size = default_max_cols_size;
 
@@ -173,10 +182,6 @@ int main()
                 }
                 dataSet->db_rows_size++;
             }
-            // else
-            // {
-            //     printf("Error reading the file or file is empty.\n");
-            // }
         }
 
         // ----------------------------- Input State -----------------------------
@@ -194,45 +199,48 @@ int main()
                 switch (plot_type)
                 {
                 case 0:
-                    if (plot_option == 0)
+                    if (plot_option == 0 || plot_option == -1)
                         ctp_plot_table(dataSet);
                     else if (plot_option == 1)
                         ctp_plot_table_search(dataSet);
                     break;
                 case 1:
-                    if (plot_option == 0)
-                        ctp_plot(dataSet);
+                    if (plot_option == 0 || plot_option == -1)
+                        ctp_plot_scatter(dataSet);
                     else if (plot_option == 1)
                         ctp_plot_search(dataSet);
                     break;
                 default:
                     break;
                 }
+                printf("\n");
             }
 
             if (plot_option == -1) // Menu
             {
-                printf("\nPlot Menu:\n");
-                printf(" -1: Exit. \n");
+                printf("Plot Menu:\n");
+                printf("  q: Exit. \n");
                 printf("  0: Writing new data. \n");
-                printf("  1: Search data. \n");
-
-                printf("Menu: ");
+                printf("  1: Searching data. \n");
+                printf(": ");
                 fgets(input, sizeof(input), stdin);
+                printf("\n");
+                if (CheckQuitCondition(input))
+                    break;
                 sscanf(input, "%d", &plot_option);
             }
 
             if (plot_option == 0) // Writing
             {
                 // Get new plotting point
-                printf("\nWrinting Mode:\n");
+                printf("Wrinting Mode:\n");
                 printf("Plot %d, Done(q):\n", dataSet->db_rows_size);
 
                 // Recieve New data
                 CTP_PARAM data[dataSet->db_rows_size];
                 for (int i = 0; i < dataSet->db_cols_size; i++)
                 {
-                    printf("Column[%d] (%s): ", i, dataSet->label[i]);
+                    printf("  Column[%d] (%s): ", i, dataSet->label[i]);
                     fgets(input, sizeof(input), stdin);
 
                     if (CheckQuitCondition(input))
@@ -243,7 +251,7 @@ int main()
                     else
                         sscanf(input, "%lf", &data[i]);
                 }
-
+                printf("\n");
                 if (force_break)
                     break;
 
@@ -255,14 +263,14 @@ int main()
                 char op[20];
                 double target;
 
-                printf("\nSearching Mode:\n");
+                printf("Searching Mode:\n");
 
-                printf("Select search column:\n");
+                printf("  Select search column, Done(q):\n");
                 for (int i = 0; i < dataSet->db_cols_size; i++)
                 {
-                    printf("  %d: %s\n", i, dataSet->label[i]);
+                    printf("    %d: %s\n", i, dataSet->label[i]);
                 }
-                printf("Select , Quit(q): ");
+                printf("  : ");
                 fgets(input, sizeof(input), stdin);
                 if (CheckQuitCondition(input))
                 {
@@ -272,16 +280,16 @@ int main()
                 }
                 else
                     sscanf(input, "%d", &col);
+                printf("\n");
 
-                printf("\nSelect operator:\n");
-                printf("  e: Equal (==)\n");
-                printf("  ne: Not equal (!=)\n");
-                printf("  lt: Less than (<)\n");
-                printf("  lte: Less than or Equal (<=)\n");
-                printf("  gt: Grater than (>)\n");
-                printf("  gte: Grater than or Equal (>=)\n");
-
-                printf("Select , Quit(q): ");
+                printf("  Select operator, Quit(q):\n");
+                printf("    e: Equal (==)\n");
+                printf("    ne: Not equal (!=)\n");
+                printf("    lt: Less than (<)\n");
+                printf("    lte: Less than or Equal (<=)\n");
+                printf("    gt: Grater than (>)\n");
+                printf("    gte: Grater than or Equal (>=)\n");
+                printf("  : ");
                 fgets(input, sizeof(input), stdin);
 
                 if (CheckQuitCondition(input))
@@ -298,8 +306,9 @@ int main()
                         *newline = '\0';
                     strcpy(op, input);
                 }
+                printf("\n");
 
-                printf("\nSet search value: , Quit(q): ");
+                printf("  Set search value, Quit(q): ");
                 fgets(input, sizeof(input), stdin);
                 if (CheckQuitCondition(input))
                 {
@@ -312,8 +321,8 @@ int main()
 
                 ctp_findMany(dataSet, col, op, target);
             }
+            printf("End of Program, Thank you.\n");
         }
-        printf("End of Program, Thank you.\n");
     }
 
     return 0;
