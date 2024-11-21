@@ -68,7 +68,7 @@ int main()
     for (int i = 0; i < 4; i++)
         plot_show[i] = false;
 
-    while (1)
+    while (!force_break)
     {
         // ----------------------------- Setup State -----------------------------
         // Draw Logo acii art
@@ -137,19 +137,37 @@ int main()
         }
         else if (data_mode == 1)
         {
-            // Get csv path
-            printf("Choose your data path (ex: your_path/file.csv)\n: ");
-            fgets(input, sizeof(input), stdin);
-            input[strcspn(input, "\n")] = 0;
-            strcpy(file_path, input);
-
-            // Open file
-            fpt = fopen(file_path, "r");
-            if (fpt == NULL)
+            bool semi_force_break = false;
+            while (1)
             {
-                perror("Error opening file");
-                return 1;
+                // Get csv path
+                printf("Choose your data path (ex: your_path/file.csv), Return to Menu(q)\n: ");
+                fgets(input, sizeof(input), stdin);
+
+                if (CheckQuitCondition(input))
+                {
+                    semi_force_break = true;
+                    break;
+                }
+
+                // Remove newline if present
+                char *newline = strchr(input, '\n');
+                if (newline)
+                    *newline = '\0';
+                strcpy(file_path, input);
+
+                // Open file
+                fpt = fopen(file_path, "r");
+                if (fpt == NULL)
+                {
+                    printf("Error opening file.\n\n");
+                    continue;
+                }
+                else
+                    break;
             }
+            if (semi_force_break)
+                continue;
 
             // Initialize tempo input
             char _input[300]; // Buffer to hold the first line (adjust size as needed)
@@ -220,15 +238,15 @@ int main()
                 {
                     ctp_plot_table(dataSet);
                 }
-                else if (plot_show[1])
+                if (plot_show[1])
                 {
                     ctp_plot_scatter(dataSet);
                 }
-                else if (plot_show[2])
+                if (plot_show[2])
                 {
                     ctp_plot_table_search(dataSet);
                 }
-                else if (plot_show[3])
+                if (plot_show[3])
                 {
                     ctp_plot_scatter_search(dataSet);
                 }
@@ -239,6 +257,7 @@ int main()
             {
                 printf("Plot Menu:\n");
                 printf("  q: End The Program.\n");
+                printf("  r: Create New Plot.\n");
                 printf("  0: Setting.\n");
                 printf("  1: Write New Data.\n");
                 printf("  2: Search Data.\n");
@@ -248,7 +267,13 @@ int main()
                 fgets(input, sizeof(input), stdin);
                 printf("\n");
                 if (CheckQuitCondition(input))
+                {
+                    force_break = true;
                     break;
+                }
+                if (strcmp(input, "r"))
+                    break;
+                ;
                 sscanf(input, "%d", &plot_option);
             }
 
@@ -410,9 +435,6 @@ int main()
                 }
                 printf("\n");
 
-                if (force_break)
-                    break;
-
                 ctp_add_row(dataSet, data);
             }
             else if (plot_option == 2) // Search
@@ -486,12 +508,58 @@ int main()
             }
             else if (plot_option == 3) // Analyze
             {
+                while (1)
+                {
+                    printf("Analyze Mode:\n");
+                    printf("  q: Return To Menu. \n");
+                    printf("  0: Find Mean. \n");
+                    printf("  1: Find MD (Mean Deviation). \n");
+                    printf("  2: Find SD (Standard Deviation). \n");
+                    printf(": ");
+                    fgets(input, sizeof(input), stdin);
+                    printf("\n");
+
+                    if (CheckQuitCondition(input))
+                    {
+                        plot_option = -1;
+                        break;
+                    }
+
+                    int analyze_mode;
+                    sscanf(input, "%d", &analyze_mode);
+
+                    CTP_PARAM *db_analyze;
+                    if (analyze_mode == 0)
+                    {
+                        printf("Getting Mean:\n");
+                        db_analyze = ctp_analyze_mean(dataSet);
+                    }
+                    else if (analyze_mode == 1)
+                    {
+                        printf("Getting MD:\n");
+                        db_analyze = ctp_analyze_md(dataSet);
+                    }
+
+                    else if (analyze_mode == 2)
+                    {
+                        printf("Getting SD:\n");
+                        db_analyze = ctp_analyze_sd(dataSet);
+                    }
+                    ctp_plot_analyze(dataSet, db_analyze);
+                    printf("\n");
+                }
             }
             else if (plot_option == 4) // Save
             {
+                printf("Save Mode:\n");
+                printf("  1: Save this default data.\n");
+                printf("  2: Save this filter data.\n");
+                fgets(input, sizeof(input), stdin);
             }
         }
-        printf("End of Program, Thank you.\n");
+
+        print_ascii_art();
+        printf("End of Program, Thank you.\n\n");
     }
 
     return 0;
