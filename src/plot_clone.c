@@ -68,6 +68,9 @@ int main()
     for (int i = 0; i < 4; i++)
         plot_show[i] = false;
 
+    int plot_option = -1;
+    // -1 menu, 0 writing, 1 searching, 2 more
+
     while (!force_break)
     {
         // ----------------------------- Setup State -----------------------------
@@ -116,6 +119,7 @@ int main()
         // Get more specific parameters
         if (data_mode == 0) // Write manually
         {
+            plot_option = 1;
             printf("Amount of you input column: ");
             fgets(input, sizeof(input), stdin);
             sscanf(input, "%d", &default_max_cols_size);
@@ -226,9 +230,6 @@ int main()
         // Start Plotting
         printf("\nGetting Plotting:\n");
 
-        int plot_option = -1;
-        // -1 menu, 0 writing, 1 searching, 2 more
-
         while (1)
         {
             // Display the plot
@@ -271,9 +272,9 @@ int main()
                     force_break = true;
                     break;
                 }
-                if (strcmp(input, "r"))
+                if (!strcmp(input, "r\n"))
                     break;
-                ;
+
                 sscanf(input, "%d", &plot_option);
             }
 
@@ -557,10 +558,9 @@ int main()
                 fgets(input, sizeof(input), stdin);
             }
         }
-
-        print_ascii_art();
-        printf("End of Program, Thank you.\n\n");
     }
+    print_ascii_art();
+    printf("End of Program, Thank you.\n\n");
 
     return 0;
 }
