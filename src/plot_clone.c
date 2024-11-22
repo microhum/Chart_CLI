@@ -616,9 +616,9 @@ int main()
             else if (plot_option == 4) // Sort
             {
                 printf("Sort Mode:\n");
-                printf("  q: Return To Menu. \n");
-                printf("  0: Sort Default Data.\n");
-                printf("  2: Sort Filter Data.\n");
+                printf("  q: Return To Menu \n");
+                printf("  0: Sort Default Data\n");
+                printf("  2: Sort Filter Data\n");
                 printf(": ");
                 fgets(input, sizeof(input), stdin);
                 printf("\n");
@@ -628,17 +628,47 @@ int main()
                     plot_option = -1;
                     continue;
                 }
-
                 int index;
                 sscanf(input, "%d", &index);
+
+                printf("  Select Base Sort Column \n");
+                for (int i = 0; i < dataSet->db_cols_size; i++)
+                {
+                    printf("    %d: %s \n", i, dataSet->label[i]);
+                }
+                printf("  : ");
+
+                fgets(input, sizeof(input), stdin);
+                printf("\n");
+
+                if (CheckQuitCondition(input))
+                {
+                    plot_option = -1;
+                    continue;
+                }
+                int scol;
+                sscanf(input, "%d", &scol);
+
+                int temp_Y = dataSet->chosen_Y_param;
+                int temp_show = dataSet->show_begin;
+                bool temp_p = dataSet->plotProperties->customize_display;
+                dataSet->chosen_Y_param = scol;
+                dataSet->plotProperties->customize_display = true;
+                dataSet->show_end = dataSet->db_rows_size;
+
                 if (index == 0)
                 {
+                    ctp_printf_properties(dataSet);
                     ctp_sort(dataSet);
                 }
                 else if (index == 1)
                 {
                     ctp_sort_search(dataSet);
                 }
+
+                dataSet->chosen_Y_param = temp_Y;
+                dataSet->show_begin = temp_show;
+                dataSet->plotProperties->customize_display = temp_p;
             }
             else if (plot_option == 5) // Save
             {
