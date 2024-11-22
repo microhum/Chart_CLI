@@ -233,24 +233,40 @@ int main()
         while (1)
         {
             // Display the plot
-            if (dataSet->db_rows_size >= 2)
+
+            if (plot_show[0])
             {
-                if (plot_show[0])
+                if (dataSet->db_rows_size >= 2)
                 {
+                    printf("Default Table:\n");
                     ctp_plot_table(dataSet);
                 }
-                if (plot_show[1])
+                else
+                    printf("Default Plot has %d point, It has less point to plot scatter.\n", dataSet->db_search_size);
+                printf("\n");
+            }
+            if (plot_show[1])
+            {
+                printf("Default Scatter:\n");
+                ctp_plot_scatter(dataSet);
+                printf("\n");
+            }
+
+            if (plot_show[2])
+            {
+                printf("Search Table:\n");
+                ctp_plot_table_search(dataSet);
+                printf("\n");
+            }
+            if (plot_show[3])
+            {
+                if (dataSet->db_search_size >= 2)
                 {
-                    ctp_plot_scatter(dataSet);
-                }
-                if (plot_show[2])
-                {
-                    ctp_plot_table_search(dataSet);
-                }
-                if (plot_show[3])
-                {
+                    printf("Search Scatter:\n");
                     ctp_plot_scatter_search(dataSet);
                 }
+                else
+                    printf("Search Plot has %d point, It has less point to plot scatter.\n", dataSet->db_search_size);
                 printf("\n");
             }
 
@@ -263,7 +279,8 @@ int main()
                 printf("  1: Write New Data.\n");
                 printf("  2: Search Data.\n");
                 printf("  3: Analyze Data.\n");
-                printf("  4: Save Data.\n");
+                printf("  4: Sort Data.\n");
+                printf("  5: Save Data.\n");
                 printf(": ");
                 fgets(input, sizeof(input), stdin);
                 printf("\n");
@@ -281,21 +298,23 @@ int main()
             if (plot_option == 0) // Setting
             {
                 printf("Setting Mode:\n");
-                printf("  q: Return To Menu. \n");
+                printf("  q: Return To Menu \n");
                 printf("\n");
-                printf("  0: Edit Plot Show. \n");
-                printf("    - Default Table Plot. (%s) \n", plot_show[0] ? "true" : "false");
-                printf("    - Default Scatter Plot. (%s) \n", plot_show[1] ? "true" : "false");
-                printf("    - Search Table Plot. (%s) \n", plot_show[2] ? "true" : "false");
-                printf("    - Search Scatter Plot. (%s) \n", plot_show[3] ? "true" : "false");
+                printf("  0: Edit Plot Show \n");
+                printf("    - Default Table Plot (%s) \n", plot_show[0] ? "true" : "false");
+                printf("    - Default Scatter Plot (%s) \n", plot_show[1] ? "true" : "false");
+                printf("    - Search Table Plot (%s) \n", plot_show[2] ? "true" : "false");
+                printf("    - Search Scatter Plot (%s) \n", plot_show[3] ? "true" : "false");
                 printf("\n");
-                printf("  1: Edit Table Plot Proproties. \n");
-                printf("    - Table Width Per Column. (%d) \n", TABLE_WIDTH);
+                printf("  1: Edit Table Plot Proproties \n");
+                printf("    - Table Width Per Column (%d) \n", TABLE_WIDTH);
                 printf("    - Table Back Space Of Column  (%d) \n", BACK_SPACE);
+                printf("    - Reset To Default\n");
                 printf("\n");
                 printf("  2: Edit Scatter Plot Proproties. \n");
                 printf("    - Graph Size (%d x %d) \n", SCREEN_W, SCREEN_H);
                 printf("    - Graph Border (%d) \n", BORDER_EDGE);
+                printf("    - Reset To Default\n");
                 printf("\n");
                 printf(": ");
                 fgets(input, sizeof(input), stdin);
@@ -315,10 +334,10 @@ int main()
                     {
                         printf("  Edit Plot Show. \n");
                         printf("    q: Return To Menu. \n");
-                        printf("    0: %s: Default Table Plot. \n", plot_show[0] ? "true " : "false");
-                        printf("    1: %s: Default Scatter Plot. \n", plot_show[1] ? "true " : "false");
-                        printf("    2: %s: Search Table Plot. \n", plot_show[2] ? "true " : "false");
-                        printf("    3: %s: Search Scatter Plot. \n", plot_show[3] ? "true " : "false");
+                        printf("    0: Default Table Plot. (%s) \n", plot_show[0] ? "true " : "false");
+                        printf("    1: Default Scatter Plot. (%s) \n", plot_show[1] ? "true " : "false");
+                        printf("    2: Search Table Plot. (%s) \n", plot_show[2] ? "true " : "false");
+                        printf("    3: Search Scatter Plot. (%s) \n", plot_show[3] ? "true " : "false");
                         printf(": ");
 
                         fgets(input, sizeof(input), stdin);
@@ -340,6 +359,7 @@ int main()
                         printf("  Edit Table Plot Proproties. \n");
                         printf("    0: %d: Table Width Per Column\n", TABLE_WIDTH);
                         printf("    1: %d: Table Back Space Of Column\n", BACK_SPACE);
+                        printf("    2: Reset To Default\n");
                         printf(": ");
                         fgets(input, sizeof(input), stdin);
 
@@ -367,6 +387,10 @@ int main()
 
                             ctp_set_table_backspace(new);
                         }
+                        else if (index == 2)
+                        {
+                            ctp_set_table_reset_default();
+                        }
 
                         printf("\n");
                     }
@@ -378,6 +402,7 @@ int main()
                         printf("  Edit Scatter Plot Proproties. \n");
                         printf("    0: %d x %d: Graph Size\n", SCREEN_W, SCREEN_H);
                         printf("    1: %d: Graph Border\n", BORDER_EDGE);
+                        printf("    2: Reset To Default\n");
                         printf(": ");
                         fgets(input, sizeof(input), stdin);
 
@@ -408,6 +433,10 @@ int main()
                             sscanf(input, "%d", &new);
 
                             ctp_set_graph_border(new);
+                        }
+                        else if (index == 2)
+                        {
+                            ctp_set_graph_reset_default();
                         }
 
                         printf("\n");
@@ -440,6 +469,18 @@ int main()
             }
             else if (plot_option == 2) // Search
             {
+                if (plot_show[0])
+                {
+                    plot_show[0] = false;
+                    plot_show[2] = true;
+                }
+
+                if (plot_show[1])
+                {
+                    plot_show[1] = false;
+                    plot_show[3] = true;
+                }
+
                 int col;
                 char op[20];
                 double target;
@@ -449,63 +490,85 @@ int main()
                 printf("  0: Add New Filter. \n");
                 printf("  1: Analyzing This data\n");
                 printf("  2: Save This Data. \n");
-
-                printf("  Select search column, Done(q):\n");
-                for (int i = 0; i < dataSet->db_cols_size; i++)
-                {
-                    printf("    %d: %s\n", i, dataSet->label[i]);
-                }
-                printf("  : ");
-                fgets(input, sizeof(input), stdin);
-                if (CheckQuitCondition(input))
-                {
-                    plot_option = -1;
-                    continue;
-                    ;
-                }
-                else
-                    sscanf(input, "%d", &col);
-                printf("\n");
-
-                printf("  Select operator, Quit(q):\n");
-                printf("    e: Equal (==)\n");
-                printf("    ne: Not equal (!=)\n");
-                printf("    lt: Less than (<)\n");
-                printf("    lte: Less than or Equal (<=)\n");
-                printf("    gt: Grater than (>)\n");
-                printf("    gte: Grater than or Equal (>=)\n");
-                printf("  : ");
+                printf(": ");
                 fgets(input, sizeof(input), stdin);
 
                 if (CheckQuitCondition(input))
                 {
                     plot_option = -1;
                     continue;
-                    ;
                 }
-                else
-                {
-                    // Remove newline if present
-                    char *newline = strchr(input, '\n');
-                    if (newline)
-                        *newline = '\0';
-                    strcpy(op, input);
-                    printf("%s", op);
-                }
-                printf("\n");
 
-                printf("  Set search value, Quit(q): ");
-                fgets(input, sizeof(input), stdin);
-                if (CheckQuitCondition(input))
+                int index;
+                sscanf(input, "%d", &index);
+
+                if (index == 1)
                 {
-                    plot_option = -1;
+                    plot_option = 3;
                     continue;
-                    ;
                 }
-                else
-                    sscanf(input, "%lf", &target);
+                else if (index == 2)
+                {
+                    plot_option = 4;
+                    continue;
+                }
+                else if (index == 0)
+                {
+                    printf("  Select search column, Done(q):\n");
+                    for (int i = 0; i < dataSet->db_cols_size; i++)
+                    {
+                        printf("    %d: %s\n", i, dataSet->label[i]);
+                    }
+                    printf("  : ");
+                    fgets(input, sizeof(input), stdin);
+                    if (CheckQuitCondition(input))
+                    {
+                        plot_option = -1;
+                        continue;
+                    }
+                    else
+                        sscanf(input, "%d", &col);
+                    printf("\n");
 
-                ctp_findMany(dataSet, col, op, target);
+                    printf("  Select operator, Quit(q):\n");
+                    printf("    e: Equal (==)\n");
+                    printf("    ne: Not equal (!=)\n");
+                    printf("    lt: Less than (<)\n");
+                    printf("    lte: Less than or Equal (<=)\n");
+                    printf("    gt: Grater than (>)\n");
+                    printf("    gte: Grater than or Equal (>=)\n");
+                    printf("  : ");
+                    fgets(input, sizeof(input), stdin);
+
+                    if (CheckQuitCondition(input))
+                    {
+                        plot_option = -1;
+                        continue;
+                        ;
+                    }
+                    else
+                    {
+                        // Remove newline if present
+                        char *newline = strchr(input, '\n');
+                        if (newline)
+                            *newline = '\0';
+                        strcpy(op, input);
+                    }
+                    printf("\n");
+
+                    printf("  Set search value, Quit(q): ");
+                    fgets(input, sizeof(input), stdin);
+                    if (CheckQuitCondition(input))
+                    {
+                        plot_option = -1;
+                        continue;
+                        ;
+                    }
+                    else
+                        sscanf(input, "%lf", &target);
+
+                    ctp_findMany(dataSet, col, op, target);
+                }
             }
             else if (plot_option == 3) // Analyze
             {
@@ -550,7 +613,34 @@ int main()
                     printf("\n");
                 }
             }
-            else if (plot_option == 4) // Save
+            else if (plot_option == 4) // Sort
+            {
+                printf("Sort Mode:\n");
+                printf("  q: Return To Menu. \n");
+                printf("  0: Sort Default Data.\n");
+                printf("  2: Sort Filter Data.\n");
+                printf(": ");
+                fgets(input, sizeof(input), stdin);
+                printf("\n");
+
+                if (CheckQuitCondition(input))
+                {
+                    plot_option = -1;
+                    continue;
+                }
+
+                int index;
+                sscanf(input, "%d", &index);
+                if (index == 0)
+                {
+                    ctp_sort(dataSet);
+                }
+                else if (index == 1)
+                {
+                    ctp_sort_search(dataSet);
+                }
+            }
+            else if (plot_option == 5) // Save
             {
                 printf("Save Mode:\n");
                 printf("  1: Save this default data.\n");
