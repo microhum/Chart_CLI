@@ -224,6 +224,7 @@ int main()
                 }
                 dataSet->db_rows_size++;
             }
+            fclose(fpt);
         }
 
         // ----------------------------- Input State -----------------------------
@@ -673,12 +674,70 @@ int main()
             else if (plot_option == 5) // Save
             {
                 printf("Save Mode:\n");
-                printf("  1: Save this default data.\n");
-                printf("  2: Save this filter data.\n");
+                printf("  0: Save this default data.\n");
+                printf("  1: Save this filter data.\n");
+                printf(": ");
                 fgets(input, sizeof(input), stdin);
+                printf("\n");
+                if (CheckQuitCondition(input))
+                {
+                    plot_option = -1;
+                    continue;
+                }
+                int index;
+                sscanf(input, "%d", &index);
+
+                printf("Choose your data path (ex: your_path/file.csv), Return to Menu(q):\n");
+                printf(": ");
+                fgets(input, sizeof(input), stdin);
+                printf("\n");
+                if (CheckQuitCondition(input))
+                {
+                    plot_option = -1;
+                    continue;
+                }
+                // Remove newline if present
+                char *newline = strchr(input, '\n');
+                if (newline)
+                    *newline = '\0';
+
+                fpt = fopen(input, "w");
+
+                if (fpt == NULL)
+                {
+                    printf("Error opening file\n");
+                    continue;
+                }
+
+                for (int i = 0; i < dataSet->db_cols_size; i++)
+                {
+                    fprintf(fpt, "%s", dataSet->label[i]);
+                    if (i != dataSet->db_cols_size - 1)
+                        fprintf(fpt, ",");
+                }
+                fprintf(fpt, "\n");
+
+                for (int i = 0; i < dataSet->db_rows_size; i++)
+                {
+                    for (int j = 0; j < dataSet->db_cols_size; j++)
+                    {
+                        if (index == 0)
+                            fprintf(fpt, "%lf", dataSet->db[j][i]);
+                        else
+                            fprintf(fpt, "%lf", dataSet->db_search[j][i]);
+                        if (j != dataSet->db_cols_size - 1)
+                            fprintf(fpt, ",");
+                    }
+                    fprintf(fpt, "\n");
+                }
+
+                fclose(fpt);
             }
         }
     }
+
+    ctp_free_dataset(dataSet);
+
     print_ascii_art();
     printf("End of Program, Thank you.\n\n");
 
