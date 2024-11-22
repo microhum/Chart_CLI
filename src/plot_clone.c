@@ -276,6 +276,8 @@ int main()
                 printf("Plot Menu:\n");
                 printf("  q: End The Program.\n");
                 printf("  r: Create New Plot.\n");
+                printf("  p: Check DataSet Properties\n");
+                printf("  ----------------------------\n");
                 printf("  0: Setting.\n");
                 printf("  1: Write New Data.\n");
                 printf("  2: Search Data.\n");
@@ -291,7 +293,16 @@ int main()
                     break;
                 }
                 if (!strcmp(input, "r\n"))
+                {
+                    ctp_reset_find();
                     break;
+                }
+                if (!strcmp(input, "p\n"))
+                {
+                    ctp_printf_properties(dataSet);
+                    continue;
+                    ;
+                }
 
                 sscanf(input, "%d", &plot_option);
             }
@@ -487,16 +498,36 @@ int main()
                 double target;
 
                 printf("Searching Mode:\n");
-                printf("  q: Return To Menu. \n");
-                printf("  0: Add New Filter. \n");
+                printf("  q: Return To Menu \n");
+                printf("  r: Reset Filter\n");
+                printf("  0: Add New Filter \n");
                 printf("  1: Analyzing This data\n");
-                printf("  2: Save This Data. \n");
+                printf("  2: Save This Data \n");
                 printf(": ");
                 fgets(input, sizeof(input), stdin);
 
                 if (CheckQuitCondition(input))
                 {
                     plot_option = -1;
+                    continue;
+                }
+
+                if (strcmp(input, "r\n") == 0)
+                {
+                    ctp_reset_find();
+
+                    if (plot_show[2])
+                    {
+                        plot_show[0] = true;
+                        plot_show[2] = false;
+                    }
+
+                    if (plot_show[3])
+                    {
+                        plot_show[1] = true;
+                        plot_show[3] = false;
+                    }
+
                     continue;
                 }
 
@@ -619,7 +650,7 @@ int main()
                 printf("Sort Mode:\n");
                 printf("  q: Return To Menu \n");
                 printf("  0: Sort Default Data\n");
-                printf("  2: Sort Filter Data\n");
+                printf("  1: Sort Filter Data\n");
                 printf(": ");
                 fgets(input, sizeof(input), stdin);
                 printf("\n");
@@ -659,7 +690,6 @@ int main()
 
                 if (index == 0)
                 {
-                    ctp_printf_properties(dataSet);
                     ctp_sort(dataSet);
                 }
                 else if (index == 1)
