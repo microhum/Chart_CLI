@@ -1,244 +1,761 @@
 #include <stdio.h>
-#include <math.h>
-#include <conio.h>
 #include <string.h>
-#include <ctype.h>
 #include <stdlib.h>
-#include <wchar.h> //wprintf for printing unicode
-#include "utilities.c"
+#include <stdbool.h>
+#include <math.h>
+#include <string.h>
+#include <windows.h>
+#include <locale.h>
 
-const char SCATTER_FLAG = 'X'; 
-const char* Y_AXIS_FLAG = "┼";
-const char* X_AXIS_FLAG = "-";
+#include "../libs/CTerminalPlotLib/include/CTerminalPlotLib.h"
+#include "../libs/CTerminalPlotLib/src/CTerminalPlotLib.c"
 
-// Plot Types
-void plot_table(double x[], double y[], int size_arr, int SCREEN_H, int SCREEN_W)
+void setup()
 {
-    printf("%d Plots Total\n", size_arr);
-    for (int i = 0; i < size_arr; i++)
-    {
-        printf("Plot %d: x = %.2f, y = %.2f\n", i, x[i], y[i]);
-    }
+    SetConsoleOutputCP(CP_UTF8);
+    setlocale(LC_ALL, "");
 }
 
-void plot_scatter(double x[], double y[], const int size_arr, const int SCREEN_H, const int SCREEN_W)
+void print_ascii_art()
 {
-    double x_sort[size_arr], y_sort[size_arr];
-    memcpy(x_sort, x, sizeof(double) * size_arr);
-    memcpy(y_sort, y, sizeof(double) * size_arr);
+    printf(" ________  ___  ___  ___  ________  ___  __    ________  ___       ________  _________               ________  ___       ___     \n");
+    printf("|\\   __  \\|\\  \\|\\  \\|\\  \\|\\   ____\\|\\  \\|\\  \\ |\\   __  \\|\\  \\     |\\   __  \\|\\___   ___\\            |\\   ____\\|\\  \\     |\\  \\    \n");
+    printf("\\ \\  \\|\\  \\ \\  \\\\\\  \\ \\  \\ \\  \\___|\\ \\  \\/  /|\\ \\  \\|\\  \\ \\  \\    \\ \\  \\|\\  \\|___ \\  \\_|____________\\ \\  \\___|\\ \\  \\    \\ \\  \\   \n");
+    printf(" \\ \\  \\\\\\  \\ \\  \\\\\\  \\ \\  \\ \\  \\    \\ \\   ___  \\ \\   ____\\ \\  \\    \\ \\  \\\\\\  \\   \\ \\  \\|\\____________\\ \\  \\    \\ \\  \\    \\ \\  \\  \n");
+    printf("  \\ \\  \\\\\\  \\ \\  \\\\\\  \\ \\  \\ \\  \\____\\ \\  \\\\ \\  \\ \\  \\___|\\ \\  \\____\\ \\  \\\\\\  \\   \\ \\  \\|____________|\\ \\  \\____\\ \\  \\____\\ \\  \\ \n");
+    printf("   \\ \\_____  \\ \\_______\\ \\__\\ \\_______\\ \\__\\\\ \\__\\ \\__\\    \\ \\_______\\ \\_______\\   \\ \\__\\              \\ \\_______\\ \\_______\\ \\__\\\n");
+    printf("    \\|___| \\__\\|_______|\\|__|\\|_______|\\|__| \\|__|\\|__|     \\|_______|\\|_______|    \\|__|               \\|_______|\\|_______|\\|__|\n");
+    printf("          \\|__|                                                                                                                   \n");
+    printf("                                                                                                                                  \n");
+    printf("                                                                                                                                  \n");
+}
 
-    // # Sort array
-    bubble_sort(x_sort, size_arr);
-    bubble_sort(y_sort, size_arr);
+bool CheckQuitCondition(char input[])
+{
+    if (!strcmp(input, "done\n") ||
+        !strcmp(input, "exit\n") ||
+        !strcmp(input, "esc\n") ||
+        !strcmp(input, "q\n") ||
+        !strcmp(input, "\n"))
+        return true;
+    else
+        return false;
+}
 
-    printf("\nInitialize Scatter Plot\n");
+bool get_input(char *input, int sizeof_input)
+{
+    fgets(input, sizeof_input, stdin);
+    if (CheckQuitCondition(input))
+        return true;
+    return false;
+}
 
-    printf("%d Plots Total\n", size_arr);
+void remove_enter(char *input)
+{
+    char *newline = strchr(input, '\n');
+    if (newline)
+        *newline = '\0';
+}
 
-    double graph_size_H = SCREEN_H;
-    double graph_size_W = SCREEN_W;
+int main()
+{
+    setup();
 
-    printf("Chart Size :%lf %lf\n\n", graph_size_H, graph_size_W);
+    // Initialize default CSV read parameters
+    FILE *fpt;
+    char file_path[50];
 
-    double _y_sort[size_arr];
-    memcpy(_y_sort, y_sort, sizeof(double) * size_arr);
-    double _x_sort[size_arr];
-    memcpy(_x_sort, x_sort, sizeof(double) * size_arr);
-    int size__y = removeDuplicates(_y_sort, size_arr);
-    int size__x = removeDuplicates(_x_sort, size_arr);
+    // Initialize temporary address to keep input
+    char input[100];
 
-    printf("%d, %d\n", size__x, size__y);
+    // Initialize default DataSet initial parameters
+    DataSet *dataSet;
+    char name[10][20] = {};
+    int default_max_cols_size = 5, default_max_name_legth = 20, default_max_rows_size = 100;
 
-    // Normalize (scaling) plotting value
-    double x_normalize[size_arr]; // Scaling X with X axis
-    double y_normalize[size_arr]; // Scaling Y with Y axis
-    double _y_normalize[size__y]; // Scaling and removed duplicates of Y for Y axis
-    double _x_normalize[size__x]; // Scaling and removed duplicates of X for X axis
+    // Initailize plotting parameters
+    int plot_type = 0, data_mode = 0;
+    bool force_break = false;
 
-    for (int i = 0; i < size_arr; i++)
+    // Initialize plot show propoties
+    // Default Table || Default Scatter Plot || Search Table || Search Scatter Plot
+    bool plot_show[4];
+    for (int i = 0; i < 4; i++)
+        plot_show[i] = false;
+
+    int plot_option = -1;
+    // -1 menu, 0 writing, 1 searching, 2 more
+
+    while (!force_break)
     {
-        x_normalize[i] = normalize(graph_size_W, x[i], x_sort[0], x_sort[size_arr - 1]);
-        y_normalize[i] = normalize(graph_size_H, y[i], y_sort[0], y_sort[size_arr - 1]); // From back to front
-    }
-    for (int i = 0; i < size__x; i++)
-    {
-        _x_normalize[i] = normalize(graph_size_W, _x_sort[i], _x_sort[0], _x_sort[size__x - 1]);
-        _y_normalize[i] = normalize(graph_size_H, _y_sort[i], _y_sort[0], _y_sort[size__y - 1]); // From back to front
-    }
-    // ### for array debug
-    // print_double_array(_x_sort, size__x);
-    // print_double_array(_y_sort, size__y);
-    // print_double_array(_x_normalize, size__x);
-    // print_double_array(_y_normalize, size__y);
-    
-    // ### Debug Normalized Value
-    // printf("Normalized Values:\n");
-    // for (int i = 0; i < size_arr; i++)
-    // {
-    //     printf("x: %-5.2lf ->%-8.2lf", x[i], x_normalize[i]);
-    //     printf("| y: %-5.2lf ->%-8.2lf\n", y[size_arr - i - 1], y_normalize[size_arr - i - 1]);
-    // }
-    // printf("\n");
+        // ----------------------------- Setup State -----------------------------
+        // Draw Logo acii art
+        print_ascii_art();
 
-    // Draw Y Axis
-    int indent_y = nDigits(y_sort[size_arr - 1]);
-    int partition = 0;
-    for (int i = 0; i < graph_size_H + 1; i++)
-    {
+        // Get Plotting parameters
+        printf("Select Plot Types:\n");
+        printf("  q : Exit.\n");
+        printf("  0 : Table Plot.\n");
+        printf("  1 : Scatter Plot.\n");
+        printf("  2 : Both Table and Scatter Plot.\n");
+        printf(": ");
 
-        int curr_number = -1;
-        double match_pair_x[10][4]; // x values with same y
-        int match_idx = 0;
-        // printf("%d %d",graph_size_H - i,  _y_normalize[partition]);
+        if (get_input(input, sizeof(input)))
+            break;
+        sscanf(input, "%d", &plot_type);
+        printf("\n");
 
-        if (partition < size__y && graph_size_H - i <= _y_normalize[size__y - partition - 1])
+        if (plot_type == 0) // Only table
         {
+            plot_show[0] = true;
+        }
+        else if (plot_type == 1) // Only scatter
+        {
+            plot_show[1] = true;
+        }
+        else if (plot_type == 2) // Both table and scatter
+        {
+            plot_show[0] = true;
+            plot_show[1] = true;
+        }
 
-            printf("%.2lf", _y_sort[size__y - partition - 1]);
-            curr_number = (double)_y_sort[size__y - partition - 1];
+        printf("Select Mode:\n");
+        printf("  q : Exit.\n");
+        printf("  0 : Write new Data.\n");
+        printf("  1 : Read from file.\n");
+        printf(": ");
 
-            // Get all x values that is same y
-            for (int match_n = 0; match_n < size_arr; match_n++)
+        if (get_input(input, sizeof(input)))
+            break;
+        sscanf(input, "%d", &data_mode);
+        printf("\n");
+
+        // Get more specific parameters
+        if (data_mode == 0) // Write manually
+        {
+            plot_option = 1; // Send to write new data first
+
+            printf("Amount of you input column: ");
+            fgets(input, sizeof(input), stdin);
+            sscanf(input, "%d", &default_max_cols_size);
+            printf("\n");
+
+            printf("Input Name Of Column:\n");
+            for (int i = 0; i < default_max_cols_size; i++)
             {
-                
-                if (y[size_arr - match_n - 1] == curr_number)
+                printf("  Column[%d]: ", i);
+                fgets(input, sizeof(input), stdin);
+                input[strcspn(input, "\n")] = 0;
+                strcpy(name[i], input);
+            }
+            printf("\n");
+
+            // Initialize DataSet
+            dataSet = ctp_initialize_dataset(default_max_cols_size, default_max_name_legth, default_max_rows_size);
+            ctp_add_label(dataSet, *name, 20, default_max_cols_size);
+            dataSet->db_rows_size = 0;
+            dataSet->db_cols_size = default_max_cols_size;
+        }
+        else if (data_mode == 1)
+        {
+            bool semi_force_break = false;
+            while (1)
+            {
+                // Get csv path
+                printf("Choose your data path (ex: your_path/file.csv), Return to Menu(q)\n: ");
+
+                if (get_input(input, sizeof(input)))
                 {
-                    // Get x value
-                    match_pair_x[match_idx][0] = x[size_arr - match_n - 1];
-
-                    // Get y value
-                    match_pair_x[match_idx][1] = y[size_arr - match_n - 1];
-
-                    // Get x distance
-                    match_pair_x[match_idx][2] = (double)round(x_normalize[size_arr - match_n - 1]);
-                    match_pair_x[match_idx][3] = (double)round(y_normalize[size_arr - match_n - 1]);
-                    match_idx += 1;
+                    semi_force_break = true;
+                    break;
                 }
-            }
+                remove_enter(input);
+                strcpy(file_path, input);
+                printf("\n");
 
-            partition++;
-        }
-
-        // Make an indent from most digit number
-        if (curr_number != -1)
-        {
-            for (int i = nDigits(curr_number); i < indent_y; i++)
-            {
-                // printf(" %d %d %d", indent_y, nDigits(curr_number), curr_number);
-                printf(" ");
-            }
-        }
-        else
-        {
-            // .2lf = 3 space ( . + decimal)
-            printf("   ");
-            for (int i = 0; i < indent_y; i++)
-            {
-                printf(" ");
-            }
-        }
-
-        printf("%s", Y_AXIS_FLAG);
-
-        int show_point_axis = 0;
-        // Plot scatter point
-        if (match_idx > 0)
-        {
-            // Sort Array by X Value
-            for (int k = 0; k < match_idx - 1; k++)
-            {
-                for (int l = 0; l < match_idx - k - 1; l++)
+                // Open file
+                fpt = fopen(file_path, "r");
+                if (fpt == NULL)
                 {
-                    if (match_pair_x[l][0] > match_pair_x[l + 1][0])
+                    printf("Error opening file.\n\n");
+                    continue;
+                }
+                else
+                    break;
+            }
+            if (semi_force_break)
+                continue;
+
+            // Initialize tempo input
+            char _input[300]; // Buffer to hold the first line (adjust size as needed)
+            char *_idx;
+
+            // Read the first line which are the label and count data column
+            if (fgets(_input, sizeof(_input), fpt) != NULL)
+            {
+                remove_enter(_input);
+                _idx = strtok(_input, ",");
+
+                int _cols_size = 0;
+                while (_idx != NULL)
+                {
+                    strcpy(name[_cols_size], _idx);
+                    _idx = strtok(NULL, ",");
+                    _cols_size++;
+                }
+                default_max_cols_size = _cols_size;
+            }
+
+            // Initialize DataSet
+            dataSet = ctp_initialize_dataset(default_max_cols_size, default_max_name_legth, default_max_rows_size);
+            ctp_add_label(dataSet, *name, 20, default_max_cols_size);
+            dataSet->db_rows_size = 0;
+            dataSet->db_cols_size = default_max_cols_size;
+
+            // Read the other line which are the data
+            while (fgets(_input, sizeof(_input), fpt) != NULL)
+            {
+                remove_enter(_input);
+                _idx = strtok(_input, ",");
+
+                int _col = 0;
+                while (_idx != NULL)
+                {
+                    sscanf(_idx, "%lf", &dataSet->db[_col][dataSet->db_rows_size]);
+                    _idx = strtok(NULL, ",");
+                    _col++;
+                }
+                dataSet->db_rows_size++;
+            }
+            fclose(fpt);
+        }
+        ctp_printf_memory_usage(dataSet);
+
+        // ----------------------------- Input State -----------------------------
+        // Start Plotting
+        printf("Getting Plotting:\n");
+
+        while (1)
+        {
+            // Display the plot
+            if (plot_show[0])
+            {
+
+                printf("Default Table:\n");
+                ctp_plot_table(dataSet);
+
+                printf("\n");
+            }
+            if (plot_show[1])
+            {
+                if (dataSet->db_rows_size >= 2)
+                {
+                    printf("Default Scatter:\n");
+                    ctp_plot_scatter(dataSet);
+                }
+                else
+                    printf("Default Plot has %d point, It has less point to plot scatter.\n", dataSet->db_rows_size);
+                printf("\n");
+            }
+            if (plot_show[2])
+            {
+                printf("Search Table:\n");
+                ctp_plot_table_search(dataSet);
+                printf("\n");
+            }
+            if (plot_show[3])
+            {
+                if (dataSet->db_search_size >= 2)
+                {
+                    printf("Search Scatter:\n");
+                    ctp_plot_scatter_search(dataSet);
+                }
+                else
+                    printf("Search Plot has %d point, It has less point to plot scatter.\n", dataSet->db_search_size);
+                printf("\n");
+            }
+
+            if (plot_option == -1) // Menu
+            {
+                printf("Plot Menu:\n");
+                printf("  q: End The Program.\n");
+                printf("  r: Create New Plot.\n");
+                printf("  p: Check DataSet Properties\n");
+                printf("  s: Setting\n");
+                printf("  ----------------------------\n");
+                printf("  0: Setting.\n");
+                printf("  1: Write New Data.\n");
+                printf("  2: Search Data.\n");
+                printf("  3: Analyze Data.\n");
+                printf("  4: Sort Data.\n");
+                printf("  5: Save Data.\n");
+                printf(": ");
+
+                if (get_input(input, sizeof(input)))
+                {
+                    force_break = true;
+                    break;
+                }
+                if (!strcmp(input, "r\n"))
+                {
+                    ctp_reset_find();
+                    break;
+                }
+                if (!strcmp(input, "p\n"))
+                {
+                    ctp_printf_properties(dataSet);
+                    continue;
+                    ;
+                }
+                printf("\n");
+
+                sscanf(input, "%d", &plot_option);
+            }
+
+            if (plot_option == 0) // Setting
+            {
+                printf("Setting Mode:\n");
+                printf("  q: Return To Menu \n");
+                printf("\n");
+                printf("  0: Edit Plot Show \n");
+                printf("    - Default Table Plot (%s) \n", plot_show[0] ? "true" : "false");
+                printf("    - Default Scatter Plot (%s) \n", plot_show[1] ? "true" : "false");
+                printf("    - Search Table Plot (%s) \n", plot_show[2] ? "true" : "false");
+                printf("    - Search Scatter Plot (%s) \n", plot_show[3] ? "true" : "false");
+                printf("\n");
+                printf("  1: Edit Table Plot Proproties \n");
+                printf("    - Table Width Per Column (%d) \n", TABLE_WIDTH);
+                printf("    - Table Back Space Of Column  (%d) \n", BACK_SPACE);
+                printf("    - Reset To Default\n");
+                printf("\n");
+                printf("  2: Edit Scatter Plot Proproties. \n");
+                printf("    - Graph Size (%d x %d) \n", SCREEN_W, SCREEN_H);
+                printf("    - Graph Border (%d) \n", BORDER_EDGE);
+                printf("    - Reset To Default\n");
+                printf("\n");
+                printf(": ");
+
+                if (get_input(input, sizeof(input)))
+                {
+                    plot_option = -1;
+                    continue;
+                }
+                printf("\n");
+
+                int setting_mode;
+                sscanf(input, "%d", &setting_mode);
+
+                if (setting_mode == 0)
+                {
+                    while (1)
                     {
-                        for (int m = 0; m < 4; m++)
+                        printf("  Edit Plot Show. \n");
+                        printf("    q: Return To Menu. \n");
+                        printf("    0: Default Table Plot. (%s) \n", plot_show[0] ? "true " : "false");
+                        printf("    1: Default Scatter Plot. (%s) \n", plot_show[1] ? "true " : "false");
+                        printf("    2: Search Table Plot. (%s) \n", plot_show[2] ? "true " : "false");
+                        printf("    3: Search Scatter Plot. (%s) \n", plot_show[3] ? "true " : "false");
+                        printf(": ");
+
+                        if (get_input(input, sizeof(input)))
+                            break;
+                        printf("\n");
+
+                        int index;
+                        sscanf(input, "%d", &index);
+
+                        plot_show[index] = !plot_show[index];
+                    }
+                }
+                else if (setting_mode == 1)
+                {
+                    while (1)
+                    {
+                        printf("  Edit Table Plot Proproties. \n");
+                        printf("    0: %d: Table Width Per Column\n", TABLE_WIDTH);
+                        printf("    1: %d: Table Back Space Of Column\n", BACK_SPACE);
+                        printf("    2: Reset To Default\n");
+                        printf(": ");
+
+                        if (get_input(input, sizeof(input)))
+                            break;
+                        printf("\n");
+
+                        int index;
+                        sscanf(input, "%d", &index);
+
+                        if (index == 0)
                         {
-                            double temp = match_pair_x[l][m];
-                            match_pair_x[l][m] = match_pair_x[l + 1][m];
-                            match_pair_x[l + 1][m] = temp;
+                            int new;
+                            printf("Set New Table Width To: ");
+                            fgets(input, sizeof(input), stdin);
+                            sscanf(input, "%d", &new);
+
+                            ctp_set_table_width(new);
                         }
+                        else if (index == 1)
+                        {
+                            int new;
+                            printf("Set New Table Back Space To: ");
+                            fgets(input, sizeof(input), stdin);
+                            sscanf(input, "%d", &new);
+
+                            ctp_set_table_backspace(new);
+                        }
+                        else if (index == 2)
+                        {
+                            ctp_set_table_reset_default();
+                        }
+
+                        printf("\n");
+                    }
+                }
+                else if (setting_mode == 2)
+                {
+                    while (1)
+                    {
+                        printf("  Edit Scatter Plot Proproties. \n");
+                        printf("    0: %d x %d: Graph Size\n", SCREEN_W, SCREEN_H);
+                        printf("    1: %d: Graph Border\n", BORDER_EDGE);
+                        printf("    2: Reset To Default\n");
+                        printf(": ");
+
+                        if (get_input(input, sizeof(input)))
+                            break;
+                        printf("\n");
+
+                        int index;
+                        sscanf(input, "%d", &index);
+
+                        if (index == 0)
+                        {
+                            int new_width, new_height;
+                            printf("Set New Graph Width To: ");
+                            fgets(input, sizeof(input), stdin);
+                            sscanf(input, "%d", &new_width);
+
+                            printf("Set New Graph Height To: ");
+                            fgets(input, sizeof(input), stdin);
+                            sscanf(input, "%d", &new_height);
+
+                            ctp_set_graph_resolution(new_width, new_height);
+                        }
+                        else if (index == 1)
+                        {
+                            int new;
+                            printf("Set New Graph Border To: ");
+                            fgets(input, sizeof(input), stdin);
+                            sscanf(input, "%d", &new);
+
+                            ctp_set_graph_border(new);
+                        }
+                        else if (index == 2)
+                        {
+                            ctp_set_graph_reset_default();
+                        }
+
+                        printf("\n");
                     }
                 }
             }
-
-            int last_pos = 0;
-            int extra_length = 0;
-            for (int num_pair = 0; num_pair < match_idx; num_pair++)
+            else if (plot_option == 1) // Write
             {
-                int pos = match_pair_x[num_pair][2] * 3;
-                // printf("x: %d y: %d",match_pair_x[num_pair][2], match_pair_x[num_pair][3]);
-                for (int j = last_pos; j < pos - extra_length; j++)
-                {
-                    printf(" ");
-                }
-                // Plot scatter with color
-                printf("\033[1;31m");
-                printf("%c", SCATTER_FLAG);
+                printf("Wrinting Mode:\n");
+                printf("Plot %d, Return To Menu(q):\n", dataSet->db_rows_size);
 
-                if (show_point_axis)
+                bool correct_input = true;
+                CTP_PARAM data[dataSet->db_rows_size];
+                for (int i = 0; i < dataSet->db_cols_size; i++)
                 {
-                    printf("\033[1;32m");
-                    printf(" (%.0lf, %.0lf)", match_pair_x[num_pair][0], match_pair_x[num_pair][1]);
-                    extra_length += snprintf(NULL, 0, " (%.0lf, %.0lf)", match_pair_x[num_pair][0], match_pair_x[num_pair][1]);
+                    printf("  Column[%d] (%s): ", i, dataSet->label[i]);
+
+                    if (get_input(input, sizeof(input)))
+                    {
+                        plot_option = -1;
+                        correct_input = false;
+                        break;
+                    }
+                    sscanf(input, "%lf", &data[i]);
                 }
-                printf("\033[0m");
-                last_pos = pos + 1;
+                printf("\n");
+
+                if (correct_input)
+                    ctp_add_row(dataSet, data);
+            }
+            else if (plot_option == 2) // Search
+            {
+                if (plot_show[0])
+                {
+                    plot_show[0] = false;
+                    plot_show[2] = true;
+                }
+
+                if (plot_show[1])
+                {
+                    plot_show[1] = false;
+                    plot_show[3] = true;
+                }
+
+                int col;
+                char op[20];
+                double target;
+
+                printf("Searching Mode:\n");
+                printf("  q: Return To Menu \n");
+                printf("  r: Reset Filter\n");
+                printf("  0: Add New Filter \n");
+                printf("  1: Analyzing This data\n");
+                printf("  2: Save This Data \n");
+                printf(": ");
+
+                if (get_input(input, sizeof(input)))
+                {
+                    plot_option = -1;
+                    continue;
+                }
+
+                if (strcmp(input, "r\n") == 0)
+                {
+                    ctp_reset_find();
+
+                    if (plot_show[2])
+                    {
+                        plot_show[0] = true;
+                        plot_show[2] = false;
+                    }
+
+                    if (plot_show[3])
+                    {
+                        plot_show[1] = true;
+                        plot_show[3] = false;
+                    }
+
+                    continue;
+                }
+
+                int index;
+                sscanf(input, "%d", &index);
+
+                if (index == 1)
+                {
+                    plot_option = 3;
+                    continue;
+                }
+                else if (index == 2)
+                {
+                    plot_option = 4;
+                    continue;
+                }
+                else if (index == 0)
+                {
+                    printf("  Select search column, Done(q):\n");
+                    for (int i = 0; i < dataSet->db_cols_size; i++)
+                    {
+                        printf("    %d: %s\n", i, dataSet->label[i]);
+                    }
+                    printf("  : ");
+
+                    if (get_input(input, sizeof(input)))
+                    {
+                        plot_option = -1;
+                        continue;
+                    }
+                    printf("\n");
+                    sscanf(input, "%d", &col);
+
+                    printf("  Select operator, Quit(q):\n");
+                    printf("    e: Equal (==)\n");
+                    printf("    ne: Not equal (!=)\n");
+                    printf("    lt: Less than (<)\n");
+                    printf("    lte: Less than or Equal (<=)\n");
+                    printf("    gt: Grater than (>)\n");
+                    printf("    gte: Grater than or Equal (>=)\n");
+                    printf("  : ");
+
+                    if (get_input(input, sizeof(input)))
+                    {
+                        plot_option = -1;
+                        continue;
+                    }
+                    printf("\n");
+
+                    remove_enter(input);
+                    strcpy(op, input);
+
+                    printf("  Set search value, Quit(q): ");
+                    if (get_input(input, sizeof(input)))
+                    {
+                        plot_option = -1;
+                        continue;
+                    }
+                    sscanf(input, "%lf", &target);
+                    ctp_findMany(dataSet, col, op, target);
+                }
+            }
+            else if (plot_option == 3) // Analyze
+            {
+                while (1)
+                {
+                    printf("Analyze Mode:\n");
+                    printf("  q: Return To Menu. \n");
+                    printf("  0: Find Mean. \n");
+                    printf("  1: Find MD (Mean Deviation). \n");
+                    printf("  2: Find SD (Standard Deviation). \n");
+                    printf(": ");
+
+                    if (get_input(input, sizeof(input)))
+                    {
+                        plot_option = -1;
+                        break;
+                    }
+                    printf("\n");
+
+                    int analyze_mode;
+                    sscanf(input, "%d", &analyze_mode);
+
+                    CTP_PARAM *db_analyze;
+                    if (analyze_mode == 0)
+                    {
+                        printf("Getting Mean:\n");
+                        db_analyze = ctp_analyze_mean(dataSet);
+                    }
+                    else if (analyze_mode == 1)
+                    {
+                        printf("Getting MD:\n");
+                        db_analyze = ctp_analyze_md(dataSet);
+                    }
+
+                    else if (analyze_mode == 2)
+                    {
+                        printf("Getting SD:\n");
+                        db_analyze = ctp_analyze_sd(dataSet);
+                    }
+                    ctp_plot_analyze(dataSet, db_analyze);
+                    printf("\n");
+                }
+            }
+            else if (plot_option == 4) // Sort
+            {
+                printf("Sort Mode:\n");
+                printf("  q: Return To Menu \n");
+                printf("  0: Sort Default Data\n");
+                printf("  1: Sort Filter Data\n");
+                printf(": ");
+
+                if (get_input(input, sizeof(input)))
+                {
+                    plot_option = -1;
+                    continue;
+                }
+                printf("\n");
+
+                int index;
+                sscanf(input, "%d", &index);
+
+                printf("  Select Base Sort Column \n");
+                for (int i = 0; i < dataSet->db_cols_size; i++)
+                {
+                    printf("    %d: %s \n", i, dataSet->label[i]);
+                }
+                printf("  : ");
+
+                if (get_input(input, sizeof(input)))
+                {
+                    plot_option = -1;
+                    continue;
+                }
+                printf("\n");
+
+                int scol;
+                sscanf(input, "%d", &scol);
+
+                int temp_Y = dataSet->chosen_Y_param;
+                int temp_show = dataSet->show_begin;
+                bool temp_p = dataSet->plotProperties->customize_display;
+                dataSet->chosen_Y_param = scol;
+                dataSet->plotProperties->customize_display = true;
+                dataSet->show_end = dataSet->db_rows_size;
+
+                if (index == 0)
+                {
+                    ctp_sort(dataSet);
+                }
+                else if (index == 1)
+                {
+                    ctp_sort_search(dataSet);
+                }
+
+                dataSet->chosen_Y_param = temp_Y;
+                dataSet->show_begin = temp_show;
+                dataSet->plotProperties->customize_display = temp_p;
+            }
+            else if (plot_option == 5) // Save
+            {
+                printf("Save Mode:\n");
+                printf("  0: Save this default data.\n");
+                printf("  1: Save this filter data.\n");
+                printf(": ");
+
+                if (get_input(input, sizeof(input)))
+                {
+                    plot_option = -1;
+                    continue;
+                }
+                printf("\n");
+
+                int index;
+                sscanf(input, "%d", &index);
+
+                printf("Choose your data path (ex: your_path/file.csv), Return to Menu(q):\n");
+                printf(": ");
+
+                if (get_input(input, sizeof(input)))
+                {
+                    plot_option = -1;
+                    continue;
+                }
+                printf("\n");
+
+                remove_enter(input);
+                fpt = fopen(input, "w");
+
+                if (fpt == NULL)
+                {
+                    printf("Error opening file\n");
+                    continue;
+                }
+
+                for (int i = 0; i < dataSet->db_cols_size; i++)
+                {
+                    fprintf(fpt, "%s", dataSet->label[i]);
+                    if (i != dataSet->db_cols_size - 1)
+                        fprintf(fpt, ",");
+                }
+                fprintf(fpt, "\n");
+
+                for (int i = 0; i < dataSet->db_rows_size; i++)
+                {
+                    for (int j = 0; j < dataSet->db_cols_size; j++)
+                    {
+                        if (index == 0)
+                            fprintf(fpt, "%lf", dataSet->db[j][i]);
+                        else
+                            fprintf(fpt, "%lf", dataSet->db_search[j][i]);
+                        if (j != dataSet->db_cols_size - 1)
+                            fprintf(fpt, ",");
+                    }
+                    fprintf(fpt, "\n");
+                }
+
+                fclose(fpt);
             }
         }
-        printf("\n");
     }
 
-    // Draw X Axis
+    ctp_free_dataset(dataSet);
 
-    // indent space for x
-    indent_y += 3;
-    for (int i = 0; i < indent_y; i++)
-    {
-        printf(" ");
-    }
-    printf("+");
-    for (int i = 0; i < graph_size_W + 1; i++)
-    {
-        for(int j = 0; j < 3; j++){
-            printf("%s", X_AXIS_FLAG);
-        }
-        
-    }
-    printf("\n");
+    print_ascii_art();
+    printf("End of Program, Thank you.\n\n");
 
-    // indent to match with ---
-    int indent_x = 3;
-    // . + 2 decimal
-    int x_decimal = 3;
-
-    // starter indent space for x
-    for (int i = 0; i < indent_y - x_decimal; i++)
-    {
-        printf(" ");
-    }
-
-    partition = 0;
-    for (int i = 0; i <= graph_size_W + 1; i++)
-    {
-        int curr_number = -1;
-
-        if (partition < size__x && i >= _x_normalize[partition])
-        {
-            // printf("%d ", i);
-            printf("%.2lf", _x_sort[partition]);
-            curr_number = (int)_x_sort[partition];
-            partition++;
-        }
-
-        int remove_indent = 0;
-        if (curr_number != -1)
-        {
-            remove_indent = nDigits(curr_number);
-            remove_indent += x_decimal;
-        }
-        for (int i = 0; i < indent_x - remove_indent; i++)
-        {
-            printf(" ");
-        }
-    }
+    return 0;
 }
