@@ -281,9 +281,9 @@ int main()
                 printf("  q: End The Program.\n");
                 printf("  r: Create New Plot.\n");
                 printf("  p: Check DataSet Properties\n");
-                printf("  s: Setting\n");
+                printf("  s: Setting Table And Scatter Plot\n");
                 printf("  ----------------------------\n");
-                printf("  0: Setting.\n");
+                printf("  0: Setting Plot Show.\n");
                 printf("  1: Write New Data.\n");
                 printf("  2: Search Data.\n");
                 printf("  3: Analyze Data.\n");
@@ -504,8 +504,9 @@ int main()
                 printf("  q: Return To Menu \n");
                 printf("  r: Reset Filter\n");
                 printf("  0: Add New Filter \n");
-                printf("  1: Analyzing This data\n");
-                printf("  2: Save This Data \n");
+                printf("  1: Analyzing This Data\n");
+                printf("  2: Sort This Data \n");
+                printf("  3: Save This Data\n");
                 printf(": ");
 
                 if (get_input(input, sizeof(input)))
@@ -544,6 +545,11 @@ int main()
                 else if (index == 2)
                 {
                     plot_option = 4;
+                    continue;
+                }
+                else if (index == 3)
+                {
+                    plot_option = 5;
                     continue;
                 }
                 else if (index == 0)
@@ -640,6 +646,7 @@ int main()
                 printf("  q: Return To Menu \n");
                 printf("  0: Sort Default Data\n");
                 printf("  1: Sort Filter Data\n");
+                printf("  2: Save Data\n");
                 printf(": ");
 
                 if (get_input(input, sizeof(input)))
@@ -674,7 +681,7 @@ int main()
                 bool temp_p = dataSet->plotProperties->customize_display;
                 dataSet->chosen_Y_param = scol;
                 dataSet->plotProperties->customize_display = true;
-                dataSet->show_end = dataSet->db_rows_size;
+                dataSet->show_end = ((index == 0) ? dataSet->db_rows_size : dataSet->db_search_size);
 
                 if (index == 0)
                 {
@@ -684,6 +691,11 @@ int main()
                 {
                     ctp_sort_search(dataSet);
                 }
+                else if (index == 2)
+                {
+                    plot_option = 5;
+                    continue;
+                }
 
                 dataSet->chosen_Y_param = temp_Y;
                 dataSet->show_begin = temp_show;
@@ -692,6 +704,7 @@ int main()
             else if (plot_option == 5) // Save
             {
                 printf("Save Mode:\n");
+                printf("  q: Return To Menu \n");
                 printf("  0: Save this default data.\n");
                 printf("  1: Save this filter data.\n");
                 printf(": ");
@@ -733,7 +746,7 @@ int main()
                 }
                 fprintf(fpt, "\n");
 
-                for (int i = 0; i < dataSet->db_rows_size; i++)
+                for (int i = 0; i < ((index == 0) ? dataSet->db_rows_size : dataSet->db_search_size); i++)
                 {
                     for (int j = 0; j < dataSet->db_cols_size; j++)
                     {
