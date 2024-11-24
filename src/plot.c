@@ -281,14 +281,14 @@ int main()
                 printf("  q: End The Program.\n");
                 printf("  r: Create New Plot.\n");
                 printf("  p: Check DataSet Properties\n");
-                printf("  s: Setting Table And Scatter Plot\n");
+                printf("  s: Setting Plot Show\n");
                 printf("  ----------------------------\n");
-                printf("  0: Setting Plot Show.\n");
-                printf("  1: Write New Data.\n");
-                printf("  2: Search Data.\n");
+                printf("  0: Setting All Plot Properties\n");
+                printf("  1: Write New Data\n");
+                printf("  2: Search Data\n");
                 printf("  3: Analyze Data.\n");
-                printf("  4: Sort Data.\n");
-                printf("  5: Save Data.\n");
+                printf("  4: Sort Data\n");
+                printf("  5: Save Data\n");
                 printf(": ");
 
                 if (get_input(input, sizeof(input)))
@@ -306,6 +306,28 @@ int main()
                     ctp_printf_properties(dataSet);
                     continue;
                     ;
+                }
+                if (!strcmp(input, "s\n"))
+                {
+                    while (1)
+                    {
+                        printf("Edit Plot Show. \n");
+                        printf("  q: Return To Menu. \n");
+                        printf("  0: Default Table Plot. (%s) \n", plot_show[0] ? "true " : "false");
+                        printf("  1: Default Scatter Plot. (%s) \n", plot_show[1] ? "true " : "false");
+                        printf("  2: Search Table Plot. (%s) \n", plot_show[2] ? "true " : "false");
+                        printf("  3: Search Scatter Plot. (%s) \n", plot_show[3] ? "true " : "false");
+                        printf(": ");
+
+                        if (get_input(input, sizeof(input)))
+                            break;
+                        printf("\n");
+
+                        int index;
+                        sscanf(input, "%d", &index);
+
+                        plot_show[index] = !plot_show[index];
+                    }
                 }
                 printf("\n");
 
@@ -372,8 +394,9 @@ int main()
                     while (1)
                     {
                         printf("  Edit Table Plot Proproties. \n");
-                        printf("    0: %d: Table Width Per Column\n", TABLE_WIDTH);
-                        printf("    1: %d: Table Back Space Of Column\n", BACK_SPACE);
+                        printf("    q: Return To Menu. \n");
+                        printf("    0: Table Width Per Column (%d)\n", TABLE_WIDTH);
+                        printf("    1: Table Back Space Of Column (%d)\n", BACK_SPACE);
                         printf("    2: Reset To Default\n");
                         printf(": ");
 
@@ -415,8 +438,9 @@ int main()
                     while (1)
                     {
                         printf("  Edit Scatter Plot Proproties. \n");
-                        printf("    0: %d x %d: Graph Size\n", SCREEN_W, SCREEN_H);
-                        printf("    1: %d: Graph Border\n", BORDER_EDGE);
+                        printf("    q: Return To Menu. \n");
+                        printf("    0: Graph Size (%d x %d)\n", SCREEN_W, SCREEN_H);
+                        printf("    1: Graph Border (%d)\n", BORDER_EDGE);
                         printf("    2: Reset To Default\n");
                         printf(": ");
 
@@ -602,13 +626,12 @@ int main()
             {
                 while (1)
                 {
+
                     printf("Analyze Mode:\n");
                     printf("  q: Return To Menu. \n");
-                    printf("  0: Find Mean. \n");
-                    printf("  1: Find MD (Mean Deviation). \n");
-                    printf("  2: Find SD (Standard Deviation). \n");
+                    printf("  0: Analyze Default Data\n");
+                    printf("  1: Analyze Filter Data\n");
                     printf(": ");
-
                     if (get_input(input, sizeof(input)))
                     {
                         plot_option = -1;
@@ -616,28 +639,56 @@ int main()
                     }
                     printf("\n");
 
-                    int analyze_mode;
-                    sscanf(input, "%d", &analyze_mode);
+                    int index;
+                    sscanf(input, "%d", &index);
 
-                    CTP_PARAM *db_analyze;
-                    if (analyze_mode == 0)
+                    while (1)
                     {
-                        printf("Getting Mean:\n");
-                        db_analyze = ctp_analyze_mean(dataSet);
-                    }
-                    else if (analyze_mode == 1)
-                    {
-                        printf("Getting MD:\n");
-                        db_analyze = ctp_analyze_md(dataSet);
-                    }
+                        printf("Analyze %s:\n", (index == 0) ? "Default Data" : "Filter Data");
+                        printf("  q: Return To Menu. \n");
+                        printf("  0: Find Mean. \n");
+                        printf("  1: Find MD (Mean Deviation). \n");
+                        printf("  2: Find SD (Standard Deviation). \n");
+                        printf(": ");
 
-                    else if (analyze_mode == 2)
-                    {
-                        printf("Getting SD:\n");
-                        db_analyze = ctp_analyze_sd(dataSet);
+                        if (get_input(input, sizeof(input)))
+                        {
+                            break;
+                            printf("\n");
+                        }
+
+                        int analyze_mode;
+                        sscanf(input, "%d", &analyze_mode);
+
+                        CTP_PARAM *db_analyze;
+                        if (analyze_mode == 0)
+                        {
+                            printf("Getting Mean (%s):\n", (index == 0) ? "Default Data" : "Filter Data");
+                            if (index == 0)
+                                db_analyze = ctp_analyze_mean(dataSet);
+                            else
+                                db_analyze = ctp_analyze_mean_search(dataSet);
+                        }
+                        else if (analyze_mode == 1)
+                        {
+                            printf("Getting MD (%s):\n", (index == 0) ? "Default Data" : "Filter Data");
+                            if (index == 0)
+                                db_analyze = ctp_analyze_md(dataSet);
+                            else
+                                db_analyze = ctp_analyze_md_search(dataSet);
+                        }
+
+                        else if (analyze_mode == 2)
+                        {
+                            printf("Getting SD (%s):\n", (index == 0) ? "Default Data" : "Filter Data");
+                            if (index == 0)
+                                db_analyze = ctp_analyze_sd(dataSet);
+                            else
+                                db_analyze = ctp_analyze_sd_search(dataSet);
+                        }
+                        ctp_plot_analyze(dataSet, db_analyze);
+                        printf("\n");
                     }
-                    ctp_plot_analyze(dataSet, db_analyze);
-                    printf("\n");
                 }
             }
             else if (plot_option == 4) // Sort
