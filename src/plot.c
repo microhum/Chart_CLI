@@ -233,10 +233,9 @@ int main()
 
         // ----------------------------- Input State -----------------------------
         // Start Plotting
-        printf("Getting Plotting:\n");
-
         while (1)
         {
+            printf("\nGetting Plotting:\n");
             // Display the plot
             if (plot_show[0])
             {
@@ -653,8 +652,8 @@ int main()
 
                         if (get_input(input, sizeof(input)))
                         {
-                            break;
                             printf("\n");
+                            break;
                         }
 
                         int analyze_mode;
