@@ -297,6 +297,7 @@ int main()
                 }
                 if (!strcmp(input, "r\n"))
                 {
+                    ctp_free_dataset(dataSet);
                     ctp_reset_find();
                     break;
                 }
