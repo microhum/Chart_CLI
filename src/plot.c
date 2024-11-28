@@ -221,7 +221,9 @@ int main()
                 int _col = 0;
                 while (_idx != NULL)
                 {
-                    sscanf(_idx, "%lf", &dataSet->db[_col][dataSet->db_rows_size]);
+                    double temp;
+                    sscanf(_idx, "%lf", &temp);
+                    dataSet->db[_col][dataSet->db_rows_size] = (CTP_PARAM)temp;
                     _idx = strtok(NULL, ",");
                     _col++;
                 }
@@ -499,7 +501,9 @@ int main()
                         correct_input = false;
                         break;
                     }
-                    sscanf(input, "%lf", &data[i]);
+                    double temp;
+                    sscanf(input, "%lf", &temp);
+                    data[i] = (CTP_PARAM)temp;
                 }
                 printf("\n");
 
@@ -802,9 +806,14 @@ int main()
                     for (int j = 0; j < dataSet->db_cols_size; j++)
                     {
                         if (index == 0)
-                            fprintf(fpt, "%lf", dataSet->db[j][i]);
+                        {
+                            fprintf(fpt, "%lf", (double)dataSet->db[j][i]);
+                        }
                         else
-                            fprintf(fpt, "%lf", dataSet->db_search[j][i]);
+                        {
+                            fprintf(fpt, "%lf", (double)dataSet->db_search[j][i]);
+                        }
+
                         if (j != dataSet->db_cols_size - 1)
                             fprintf(fpt, ",");
                     }
