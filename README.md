@@ -1,7 +1,7 @@
 # Chart_CLI
 
 <div align="center">
-<img src="image/README/stonk.png" alt="stonk" height="300">
+<img src="image/README/Quickplot.jpg" alt="quickplot" height="300">
 </div>
 
 > [!NOTE]
