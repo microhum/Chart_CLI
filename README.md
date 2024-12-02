@@ -12,7 +12,7 @@ With this  `CLI` give you ability to **plot** your data into ***beautiful** comm
 | Features                           | Done |
 | ---------------------------------- | :--: |
 | Scatter Plot                       |  ✅  |
-| File Import (CSV, JSON, XLSX etc.) |  ⛔  |
+| File Import (CSV, JSON, XLSX etc.) |  ✅  |
 | Line Plot                          |  ⛔  |
 | Histogram                          |  ⛔  |
 | Box plot                           |  ⛔  |
@@ -21,7 +21,7 @@ With this  `CLI` give you ability to **plot** your data into ***beautiful** comm
 | More Statistics                    |  ⛔  |
 
 > [!NOTE]
-> These are current features of `Chart CLI`, It can be change or add more in the futures.
+> These are current features of `Chart CLI`, It can be support more in the futures.
 
 ### Usage [⚙️](https://emojipedia.org/gear)
 
