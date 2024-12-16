@@ -23,7 +23,7 @@ With this  `CLI` give you ability to **plot** your data into  ***lightweight** a
 
 ### Usage ⚙️
 
-compile and run `plot.c` file. Enjoy ;D !
+compile and run `src/plot.c` file. Enjoy ;D !
 
 ### For More Details
 This repository is `CLI` version of [***📈 CTerminalPlotLib***](https://github.com/Jakkarin-Promsee/CTerminalPlotLib) Check out Mr.Jakkarin of his incredible work which he optimized it for best practice !
