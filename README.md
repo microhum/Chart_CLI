@@ -18,8 +18,9 @@ With this  `CLI` give you ability to **plot** your data into  ***lightweight** a
 
 - Table Plot
 - Scatter Plot
-- File Reading (csv format)
+- File Write, Import and Export (csv format)
 - Basic statistical calculations (STD, Mean, Median, Mode etc.)
+- Plot Settings & More !
 
 ### Usage ⚙️
 
