@@ -1,28 +1,30 @@
-# Chart_CLI
+# QuickPlot CLI ⚡: Your lightweight tool for quick data visualization in C.
 
 <div align="center">
 <img src="image/README/Quickplot.jpg" alt="quickplot" height="300">
 </div>
 
 > [!NOTE]
-> I created this project for being team project work I send in `Computer Programming Course CPE100`
+> We created this project for being team project work I send in `Computer Programming Course CPE100`
 
-With this  `CLI` give you ability to **plot** your data into ***beautiful** command line* charts. Feeling like a senior cybersecurity dude [😎]()
+***We found that***
 
-| Features                           | Done |
-| ---------------------------------- | :--: |
-| Scatter Plot                       |  ✅  |
-| File Import (CSV, JSON, XLSX etc.) |  ✅  |
-| Line Plot                          |  ⛔  |
-| Histogram                          |  ⛔  |
-| Box plot                           |  ⛔  |
-| Heat map                           |  ⛔  |
-| Plot equation                      |  ⛔  |
-| More Statistics                    |  ⛔  |
+- Most plotting libraries are written in `C++` (It's hard to implement in `C` since no OOP)
+- Most plotting libraries aren't designed to work in the terminal, so they often rely on image rendering programs to display graphs.
 
-> [!NOTE]
-> These are current features of `Chart CLI`, It can be support more in the futures.
+With this  `CLI` give you ability to **plot** your data into  ***lightweight** and **beautiful** command line* charts. Feeling like a senior cybersecurity dude 😎
 
-### Usage [⚙️](https://emojipedia.org/gear)
+### Features 📈
 
-compile and run `plotting.c` file. Enjoy !
+- Table Plot
+- Scatter Plot
+- File Reading (csv format)
+- Basic statistical calculations (STD, Mean, Median, Mode etc.)
+
+### Usage ⚙️
+
+compile and run `plot.c` file. Enjoy ;D !
+
+### For More Details
+This repository is `CLI` version of [***📈 CTerminalPlotLib***](https://github.com/Jakkarin-Promsee/CTerminalPlotLib) Check out Mr.Jakkarin of his incredible work which he optimized it for best practice !
+
