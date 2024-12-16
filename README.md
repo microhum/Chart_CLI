@@ -5,7 +5,7 @@
 </div>
 
 > [!NOTE]
-> We created this project for being team project work I send in `Computer Programming Course CPE100`
+> We created this project for being team project work we send in `Computer Programming Course CPE100`
 
 ***We found that***
 
